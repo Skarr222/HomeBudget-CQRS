@@ -10,7 +10,6 @@ namespace HomeBudget.API.Controllers;
 public class TransactionsController : ControllerBase
 {
     private readonly IMediator _m;
-
     public TransactionsController(IMediator m) => _m = m;
 
     [HttpGet]
