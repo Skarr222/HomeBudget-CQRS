@@ -9,11 +9,7 @@ builder.Services.AddDbContext<HomeBudgetDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// builder.Services.AddMediatR(cfg =>
-//     cfg.RegisterServicesFromAssembly(
-//         typeof(HomeBudget.Application.Transactions.TransactionDto).Assembly
-//     )
-// );
+builder.Services.AddMediatR(typeof(HomeBudget.Application.Transactions.TransactionDto).Assembly);
 
 builder
     .Services.AddControllers()
