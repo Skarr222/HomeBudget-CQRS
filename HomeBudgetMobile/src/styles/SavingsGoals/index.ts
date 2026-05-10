@@ -48,6 +48,7 @@ export const s = StyleSheet.create({
   progressFill: { height: "100%", borderRadius: 4 },
   deadline: { fontSize: 11, color: colors.textMuted },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  listContent: { padding: 16, paddingBottom: 100 },
   empty: { alignItems: "center", paddingTop: 60, gap: 8 },
   emptyText: { fontSize: 16, color: colors.textSecondary, fontWeight: "600" },
   emptySubText: { fontSize: 13, color: colors.textMuted },
@@ -128,4 +129,8 @@ export const fm = StyleSheet.create({
   },
   toggleBtnActive: { backgroundColor: colors.success, borderColor: colors.success },
   toggleText: { fontSize: 15, color: colors.textSecondary, fontWeight: "600" },
+  toggleTextSelected: { color: "#fff" },
+  labelMarginTop: { marginTop: 16 },
+  flex1: { flex: 1 },
+  savingOpacity: { opacity: 0.5 },
 });

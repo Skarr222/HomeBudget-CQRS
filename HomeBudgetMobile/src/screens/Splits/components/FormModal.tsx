@@ -107,7 +107,7 @@ export default function FormModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={fm.flex1}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={fm.header}>
@@ -118,7 +118,7 @@ export default function FormModal({
             {editing ? "Edytuj konto" : "Nowe konto"}
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[fm.save, saving && { opacity: 0.5 }]}>Zapisz</Text>
+            <Text style={[fm.save, saving && fm.savingOpacity]}>Zapisz</Text>
           </TouchableOpacity>
         </View>
         <View style={fm.body}>
@@ -147,7 +147,7 @@ export default function FormModal({
                 <Text
                   style={[
                     fm.typeBtnText,
-                    type === t.value && { color: "#fff" },
+                    type === t.value && fm.typeBtnTextSelected,
                   ]}
                 >
                   {t.label}

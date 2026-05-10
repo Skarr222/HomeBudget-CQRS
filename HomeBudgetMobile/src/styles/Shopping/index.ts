@@ -56,6 +56,7 @@ export const s = StyleSheet.create({
   progressFill: { height: "100%", borderRadius: 3 },
   progressText: { fontSize: 11, color: colors.textMuted, width: 30, textAlign: "right" },
   emptyItemsHint: { fontSize: 11, color: colors.textMuted, fontStyle: "italic" },
+  listContent: { padding: 16, paddingBottom: 100 },
   empty: { alignItems: "center", paddingTop: 60, gap: 8 },
   emptyText: { fontSize: 16, color: colors.textSecondary, fontWeight: "600" },
   emptySubText: { fontSize: 13, color: colors.textMuted },
@@ -122,6 +123,10 @@ export const fm = StyleSheet.create({
   },
   toggleBtnActive: { backgroundColor: colors.success, borderColor: colors.success },
   toggleText: { fontSize: 15, color: colors.textSecondary, fontWeight: "600" },
+  toggleTextSelected: { color: "#fff" },
+  labelMarginTop: { marginTop: 16 },
+  flex1: { flex: 1 },
+  savingOpacity: { opacity: 0.5 },
 });
 
 export const im = StyleSheet.create({
@@ -214,4 +219,7 @@ export const im = StyleSheet.create({
   itemMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   deleteBtn: { padding: 4 },
   modalContainer: { flex: 1, backgroundColor: colors.background },
+  flex1: { flex: 1 },
+  addConfirmBtnDisabled: { opacity: 0.5 },
+  listContent: { padding: 16, paddingBottom: 40 },
 });

@@ -25,7 +25,9 @@ export default function ShoppingScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [listFormVisible, setListFormVisible] = useState(false);
   const [editingList, setEditingList] = useState<ShoppingListDto | null>(null);
-  const [selectedList, setSelectedList] = useState<ShoppingListDto | null>(null);
+  const [selectedList, setSelectedList] = useState<ShoppingListDto | null>(
+    null
+  );
   const [itemsModalVisible, setItemsModalVisible] = useState(false);
 
   const fetchData = async () => {
@@ -83,7 +85,11 @@ export default function ShoppingScreen() {
     <View style={s.container}>
       <View style={s.statsRow}>
         <View style={s.statCard}>
-          <MaterialIcons name="shopping-cart" size={20} color={colors.primary} />
+          <MaterialIcons
+            name="shopping-cart"
+            size={20}
+            color={colors.primary}
+          />
           <Text style={s.statValue}>{active}</Text>
           <Text style={s.statLabel}>Aktywne</Text>
         </View>
@@ -97,7 +103,7 @@ export default function ShoppingScreen() {
       <FlatList
         data={lists}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={s.listContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -109,7 +115,11 @@ export default function ShoppingScreen() {
         }
         ListEmptyComponent={
           <View style={s.empty}>
-            <MaterialIcons name="shopping-cart" size={48} color={colors.textMuted} />
+            <MaterialIcons
+              name="shopping-cart"
+              size={48}
+              color={colors.textMuted}
+            />
             <Text style={s.emptyText}>Brak list zakupów</Text>
             <Text style={s.emptySubText}>Dotknij + aby utworzyć listę</Text>
           </View>
@@ -138,7 +148,9 @@ export default function ShoppingScreen() {
             </View>
             <View style={s.cardContent}>
               <View style={s.cardRow}>
-                <Text style={[s.cardTitle, item.isCompleted && s.cardTitleDone]}>
+                <Text
+                  style={[s.cardTitle, item.isCompleted && s.cardTitleDone]}
+                >
                   {item.name}
                 </Text>
                 <View style={s.cardActions}>
@@ -149,7 +161,11 @@ export default function ShoppingScreen() {
                     }}
                     style={s.actionBtn}
                   >
-                    <MaterialIcons name="edit" size={17} color={colors.primary} />
+                    <MaterialIcons
+                      name="edit"
+                      size={17}
+                      color={colors.primary}
+                    />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => handleDelete(item.id, item.name)}

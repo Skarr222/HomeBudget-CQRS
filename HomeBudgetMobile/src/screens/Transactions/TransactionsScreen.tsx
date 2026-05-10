@@ -10,7 +10,11 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { accountsApi, categoriesApi, transactionsApi } from "../../api/apiService";
+import {
+  accountsApi,
+  categoriesApi,
+  transactionsApi,
+} from "../../api/apiService";
 import {
   AccountDto,
   CategoryDto,
@@ -143,7 +147,7 @@ export default function TransactionsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={s.listContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

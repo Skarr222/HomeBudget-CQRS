@@ -84,7 +84,7 @@ export default function SavingsGoalsScreen() {
       <FlatList
         data={goals}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={s.listContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

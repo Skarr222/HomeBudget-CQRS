@@ -1,7 +1,12 @@
 import React, { useState, useCallback } from "react";
 import {
-  View, Text, FlatList, TouchableOpacity,
-  RefreshControl, ActivityIndicator, Alert,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -14,12 +19,12 @@ import FormModal from "./components/FormModal";
 const HOUSEHOLD_ID = 1;
 
 export default function BillsScreen() {
-  const [bills, setBills]               = useState<BillDto[]>([]);
-  const [categories, setCategories]     = useState<CategoryDto[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [refreshing, setRefreshing]     = useState(false);
+  const [bills, setBills] = useState<BillDto[]>([]);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editing, setEditing]           = useState<BillDto | null>(null);
+  const [editing, setEditing] = useState<BillDto | null>(null);
 
   const fetchData = async () => {
     try {
@@ -29,73 +34,142 @@ export default function BillsScreen() {
       ]);
       setBills(bRes.data);
       setCategories(cRes.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); setRefreshing(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useFocusEffect(useCallback(() => { fetchData(); }, []));
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const handleDelete = (id: number, name: string) => {
     Alert.alert("Usuń rachunek", `Usunąć "${name}"?`, [
       { text: "Anuluj", style: "cancel" },
-      { text: "Usuń", style: "destructive", onPress: async () => {
-        try { await billsApi.delete(id); setBills(prev => prev.filter(b => b.id !== id)); }
-        catch { Alert.alert("Błąd", "Nie udało się usunąć"); }
-      }},
+      {
+        text: "Usuń",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await billsApi.delete(id);
+            setBills((prev) => prev.filter((b) => b.id !== id));
+          } catch {
+            Alert.alert("Błąd", "Nie udało się usunąć");
+          }
+        },
+      },
     ]);
   };
 
-  const totalMonthly = bills.filter(b => b.isActive).reduce((sum, b) => sum + b.estimatedAmount, 0);
+  const totalMonthly = bills
+    .filter((b) => b.isActive)
+    .reduce((sum, b) => sum + b.estimatedAmount, 0);
 
-  if (loading) return <View style={s.center}><ActivityIndicator size="large" color={colors.primary} /></View>;
+  if (loading)
+    return (
+      <View style={s.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
 
   return (
     <View style={s.container}>
       <View style={s.hero}>
         <Text style={s.heroLabel}>Miesięczne zobowiązania</Text>
         <Text style={s.heroAmount}>{formatCurrency(totalMonthly)}</Text>
-        <Text style={s.heroSub}>{bills.filter(b => b.isActive).length} aktywnych rachunków</Text>
+        <Text style={s.heroSub}>
+          {bills.filter((b) => b.isActive).length} aktywnych rachunków
+        </Text>
       </View>
 
       <FlatList
         data={bills}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              fetchData();
+            }}
+          />
+        }
         ListEmptyComponent={
           <View style={s.empty}>
-            <MaterialIcons name="receipt-long" size={48} color={colors.textMuted} />
+            <MaterialIcons
+              name="receipt-long"
+              size={48}
+              color={colors.textMuted}
+            />
             <Text style={s.emptyText}>Brak rachunków</Text>
             <Text style={s.emptySubText}>Dotknij + aby dodać rachunek</Text>
           </View>
         }
         renderItem={({ item }) => (
           <View style={[s.card, !item.isActive && s.cardInactive]}>
-            <View style={[s.iconCircle, { backgroundColor: item.color + "20" }]}>
-              <MaterialIcons name={item.icon as any} size={22} color={item.color} />
+            <View
+              style={[s.iconCircle, { backgroundColor: item.color + "20" }]}
+            >
+              <MaterialIcons
+                name={item.icon as any}
+                size={22}
+                color={item.color}
+              />
             </View>
             <View style={s.cardContent}>
               <View style={s.cardRow}>
                 <View>
                   <Text style={s.cardTitle}>{item.name}</Text>
-                  {item.provider ? <Text style={s.provider}>{item.provider}</Text> : null}
+                  {item.provider ? (
+                    <Text style={s.provider}>{item.provider}</Text>
+                  ) : null}
                 </View>
                 <View style={s.cardActions}>
-                  <TouchableOpacity onPress={() => { setEditing(item); setModalVisible(true); }} style={s.actionBtn}>
-                    <MaterialIcons name="edit" size={17} color={colors.primary} />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setEditing(item);
+                      setModalVisible(true);
+                    }}
+                    style={s.actionBtn}
+                  >
+                    <MaterialIcons
+                      name="edit"
+                      size={17}
+                      color={colors.primary}
+                    />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDelete(item.id, item.name)} style={s.actionBtn}>
-                    <MaterialIcons name="delete-outline" size={17} color={colors.textMuted} />
+                  <TouchableOpacity
+                    onPress={() => handleDelete(item.id, item.name)}
+                    style={s.actionBtn}
+                  >
+                    <MaterialIcons
+                      name="delete-outline"
+                      size={17}
+                      color={colors.textMuted}
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
               <View style={s.metaRow}>
                 <View style={s.badge}>
-                  <MaterialIcons name="event" size={12} color={colors.textMuted} />
-                  <Text style={s.badgeText}>{item.dueDay}. każdego miesiąca</Text>
+                  <MaterialIcons
+                    name="event"
+                    size={12}
+                    color={colors.textMuted}
+                  />
+                  <Text style={s.badgeText}>
+                    {item.dueDay}. każdego miesiąca
+                  </Text>
                 </View>
-                <Text style={s.amount}>{formatCurrency(item.estimatedAmount)}</Text>
+                <Text style={s.amount}>
+                  {formatCurrency(item.estimatedAmount)}
+                </Text>
               </View>
               <Text style={s.category}>{item.categoryName}</Text>
               {!item.isActive && <Text style={s.inactive}>Nieaktywny</Text>}
@@ -104,14 +178,25 @@ export default function BillsScreen() {
         )}
       />
 
-      <TouchableOpacity style={s.fab} onPress={() => { setEditing(null); setModalVisible(true); }}>
+      <TouchableOpacity
+        style={s.fab}
+        onPress={() => {
+          setEditing(null);
+          setModalVisible(true);
+        }}
+      >
         <MaterialIcons name="add" size={28} color="#fff" />
       </TouchableOpacity>
 
       <FormModal
-        visible={modalVisible} onClose={() => setModalVisible(false)}
-        onSave={() => { setModalVisible(false); fetchData(); }}
-        editing={editing} categories={categories}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSave={() => {
+          setModalVisible(false);
+          fetchData();
+        }}
+        editing={editing}
+        categories={categories}
       />
     </View>
   );

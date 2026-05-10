@@ -68,7 +68,7 @@ export default function ListFormModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={fm.flex1}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={fm.header}>
@@ -79,7 +79,7 @@ export default function ListFormModal({
             {editing ? "Edytuj listę" : "Nowa lista"}
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[fm.save, saving && { opacity: 0.5 }]}>Zapisz</Text>
+            <Text style={[fm.save, saving && fm.savingOpacity]}>Zapisz</Text>
           </TouchableOpacity>
         </View>
         <View style={fm.body}>
@@ -94,7 +94,7 @@ export default function ListFormModal({
           />
           {editing && (
             <>
-              <Text style={[fm.label, { marginTop: 16 }]}>Status</Text>
+              <Text style={[fm.label, fm.labelMarginTop]}>Status</Text>
               <TouchableOpacity
                 style={[fm.toggleBtn, isCompleted && fm.toggleBtnActive]}
                 onPress={() => setIsCompleted(!isCompleted)}
@@ -104,9 +104,7 @@ export default function ListFormModal({
                   size={20}
                   color={isCompleted ? "#fff" : colors.textSecondary}
                 />
-                <Text
-                  style={[fm.toggleText, isCompleted && { color: "#fff" }]}
-                >
+                <Text style={[fm.toggleText, isCompleted && fm.toggleTextSelected]}>
                   {isCompleted ? "Zakończona" : "Aktywna"}
                 </Text>
               </TouchableOpacity>

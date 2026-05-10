@@ -59,11 +59,18 @@ export default function FormModal({
     setSaving(true);
     try {
       if (editing) {
-        await budgetsApi.update(editing.id, parseFloat(amount.replace(",", ".")));
+        await budgetsApi.update(
+          editing.id,
+          parseFloat(amount.replace(",", "."))
+        );
       } else {
         await budgetsApi.create({
           amount: parseFloat(amount.replace(",", ".")),
-          month, year, userId: USER_ID, categoryId, householdId: HOUSEHOLD_ID,
+          month,
+          year,
+          userId: USER_ID,
+          categoryId,
+          householdId: HOUSEHOLD_ID,
         });
       }
       onSave();
@@ -86,7 +93,7 @@ export default function FormModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={fm.flex1}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={fm.header}>
@@ -97,7 +104,7 @@ export default function FormModal({
             {editing ? "Edytuj budżet" : "Nowy budżet"}
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[fm.save, saving && { opacity: 0.5 }]}>Zapisz</Text>
+            <Text style={[fm.save, saving && fm.savingOpacity]}>Zapisz</Text>
           </TouchableOpacity>
         </View>
         <ScrollView style={fm.body} keyboardShouldPersistTaps="handled">
@@ -132,7 +139,7 @@ export default function FormModal({
                       <Text
                         style={[
                           fm.chipText,
-                          categoryId === c.id && { color: "#fff" },
+                          categoryId === c.id && fm.chipTextSelected,
                         ]}
                       >
                         {c.name}

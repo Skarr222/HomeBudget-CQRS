@@ -45,6 +45,9 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  accountsContent: { gap: 10 },
+  accountCardBorder: { borderLeftWidth: 4 },
+  sectionLast: { marginBottom: 32 },
   accountCard: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: 12,

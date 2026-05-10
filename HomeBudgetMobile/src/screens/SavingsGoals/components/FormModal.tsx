@@ -15,7 +15,10 @@ import { savingsGoalsApi } from "../../../api/apiService";
 import { SavingsGoalDto, UpdateSavingsGoalDto } from "../../../models/types";
 import { colors } from "../../../utils/helpers";
 import { fm } from "../../../styles/SavingsGoals";
-import { PRESET_COLORS, PRESET_ICONS } from "../../../utils/SavingsGoals/constants";
+import {
+  PRESET_COLORS,
+  PRESET_ICONS,
+} from "../../../utils/SavingsGoals/constants";
 
 const HOUSEHOLD_ID = 1;
 
@@ -106,7 +109,7 @@ export default function FormModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={fm.flex1}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={fm.header}>
@@ -117,7 +120,7 @@ export default function FormModal({
             {editing ? "Edytuj cel" : "Nowy cel"}
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[fm.save, saving && { opacity: 0.5 }]}>Zapisz</Text>
+            <Text style={[fm.save, saving && fm.savingOpacity]}>Zapisz</Text>
           </TouchableOpacity>
         </View>
         <ScrollView style={fm.body} keyboardShouldPersistTaps="handled">
@@ -186,7 +189,10 @@ export default function FormModal({
                   key={ic}
                   style={[
                     fm.iconChip,
-                    icon === ic && { backgroundColor: color, borderColor: color },
+                    icon === ic && {
+                      backgroundColor: color,
+                      borderColor: color,
+                    },
                   ]}
                   onPress={() => setIcon(ic)}
                 >
@@ -202,21 +208,17 @@ export default function FormModal({
 
           {editing && (
             <>
-              <Text style={[fm.label, { marginTop: 16 }]}>Status</Text>
+              <Text style={[fm.label, fm.labelMarginTop]}>Status</Text>
               <TouchableOpacity
                 style={[fm.toggleBtn, isCompleted && fm.toggleBtnActive]}
                 onPress={() => setIsCompleted(!isCompleted)}
               >
                 <MaterialIcons
-                  name={
-                    isCompleted ? "check-circle" : "radio-button-unchecked"
-                  }
+                  name={isCompleted ? "check-circle" : "radio-button-unchecked"}
                   size={20}
                   color={isCompleted ? "#fff" : colors.textSecondary}
                 />
-                <Text
-                  style={[fm.toggleText, isCompleted && { color: "#fff" }]}
-                >
+                <Text style={[fm.toggleText, isCompleted && fm.toggleTextSelected]}>
                   {isCompleted ? "Cel osiągnięty" : "W trakcie"}
                 </Text>
               </TouchableOpacity>

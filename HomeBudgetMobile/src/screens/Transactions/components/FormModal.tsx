@@ -135,7 +135,7 @@ export default function FormModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={fm.flex1}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={fm.header}>
@@ -146,7 +146,7 @@ export default function FormModal({
             {editing ? "Edytuj" : "Nowa transakcja"}
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[fm.save, saving && { opacity: 0.5 }]}>Zapisz</Text>
+            <Text style={[fm.save, saving && fm.savingOpacity]}>Zapisz</Text>
           </TouchableOpacity>
         </View>
 
@@ -244,7 +244,7 @@ export default function FormModal({
                   <Text
                     style={[
                       fm.chipText,
-                      categoryId === c.id && { color: "#fff" },
+                      categoryId === c.id && fm.chipTextSelected,
                     ]}
                   >
                     {c.name}
@@ -273,7 +273,7 @@ export default function FormModal({
 
           <Text style={fm.label}>Notatka</Text>
           <TextInput
-            style={[fm.input, { height: 80, textAlignVertical: "top" }]}
+            style={[fm.input, fm.inputMultiline]}
             value={note}
             onChangeText={setNote}
             multiline

@@ -38,7 +38,6 @@ export default function SplitsScreen() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -83,7 +82,7 @@ export default function SplitsScreen() {
         <Text
           style={[
             s.heroAmount,
-            { color: totalBalance >= 0 ? "#fff" : colors.dangerLight },
+            totalBalance >= 0 ? s.heroAmountPositive : s.heroAmountNegative,
           ]}
         >
           {formatCurrency(totalBalance)}
@@ -94,7 +93,7 @@ export default function SplitsScreen() {
       <FlatList
         data={accounts}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={s.listContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -121,7 +120,7 @@ export default function SplitsScreen() {
             <View
               style={[
                 s.card,
-                { borderLeftColor: item.color, borderLeftWidth: 4 },
+                s.cardLeftBorder, { borderLeftColor: item.color },
               ]}
             >
               <View

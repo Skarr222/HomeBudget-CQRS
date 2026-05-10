@@ -34,7 +34,7 @@ export default function ItemsModal({
   const [adding, setAdding] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const fetchItems = async () => {
+  const fetchItems = React.useCallback(async () => {
     if (!list) return;
     setLoading(true);
     try {
@@ -45,9 +45,8 @@ export default function ItemsModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [list]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (visible && list) {
       fetchItems();
@@ -56,7 +55,7 @@ export default function ItemsModal({
       setAddQty("1");
       setAddPrice("");
     }
-  }, [visible, list]);
+  }, [visible, list, fetchItems]);
 
   const handleToggle = async (item: ShoppingItemDto) => {
     try {
@@ -81,7 +80,7 @@ export default function ItemsModal({
     if (!addName.trim() || !list) return;
     setAdding(true);
     try {
-      const qty = parseInt(addQty) || 1;
+      const qty = parseInt(addQty, 10) || 1;
       const price = addPrice ? parseFloat(addPrice) : null;
       const response = await shoppingItemsApi.create({
         name: addName.trim(),
@@ -142,7 +141,7 @@ export default function ItemsModal({
           <TouchableOpacity onPress={onClose} style={im.backBtn}>
             <MaterialIcons name="arrow-back" size={22} color={colors.primary} />
           </TouchableOpacity>
-          <View style={{ flex: 1 }}>
+          <View style={im.flex1}>
             <Text style={im.headerTitle} numberOfLines={1}>
               {list?.name ?? "Lista zakupów"}
             </Text>
@@ -194,7 +193,7 @@ export default function ItemsModal({
                 autoFocus
               />
               <View style={im.addRow}>
-                <View style={{ flex: 1 }}>
+                <View style={im.flex1}>
                   <Text style={im.addLabel}>Ilość</Text>
                   <TextInput
                     style={im.addInput}
@@ -205,7 +204,7 @@ export default function ItemsModal({
                     placeholderTextColor={colors.textMuted}
                   />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={im.flex1}>
                   <Text style={im.addLabel}>Cena (opcja)</Text>
                   <TextInput
                     style={im.addInput}
@@ -220,7 +219,7 @@ export default function ItemsModal({
               <TouchableOpacity
                 style={[
                   im.addConfirmBtn,
-                  (!addName.trim() || adding) && { opacity: 0.5 },
+                  (!addName.trim() || adding) && im.addConfirmBtnDisabled,
                 ]}
                 onPress={handleAdd}
                 disabled={!addName.trim() || adding}
@@ -244,7 +243,7 @@ export default function ItemsModal({
               (a, b) => Number(a.isChecked) - Number(b.isChecked)
             )}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+            contentContainerStyle={im.listContent}
             ListEmptyComponent={
               <View style={s.empty}>
                 <MaterialIcons
@@ -264,14 +263,10 @@ export default function ItemsModal({
                 >
                   <MaterialIcons
                     name={
-                      item.isChecked
-                        ? "check-circle"
-                        : "radio-button-unchecked"
+                      item.isChecked ? "check-circle" : "radio-button-unchecked"
                     }
                     size={24}
-                    color={
-                      item.isChecked ? colors.success : colors.textMuted
-                    }
+                    color={item.isChecked ? colors.success : colors.textMuted}
                   />
                 </TouchableOpacity>
                 <View style={im.itemContent}>

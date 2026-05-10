@@ -232,7 +232,10 @@ export default function FormModal({
                   key={ic}
                   style={[
                     fm.iconChip,
-                    icon === ic && { backgroundColor: color, borderColor: color },
+                    icon === ic && {
+                      backgroundColor: color,
+                      borderColor: color,
+                    },
                   ]}
                   onPress={() => setIcon(ic)}
                 >

@@ -112,5 +112,8 @@ export const fm = StyleSheet.create({
     borderColor: colors.border,
   },
   chipText: { fontSize: 13, color: colors.textSecondary, fontWeight: "600" },
+  chipTextSelected: { color: "#fff" },
   scrollSpacer: { marginBottom: 16 },
+  flex1: { flex: 1 },
+  savingOpacity: { opacity: 0.5 },
 });

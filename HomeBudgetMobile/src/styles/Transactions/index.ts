@@ -48,6 +48,7 @@ export const s = StyleSheet.create({
   categoryIconText: { fontWeight: "700" },
   actions: { flexDirection: "row", gap: 4, marginTop: 4 },
   actionBtn: { padding: 4 },
+  listContent: { padding: 16, paddingBottom: 100 },
 
   fab: {
     position: "absolute",
@@ -120,5 +121,9 @@ export const fm = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  chipTextSelected: { color: "#fff" },
+  inputMultiline: { height: 80, textAlignVertical: "top" as const },
+  flex1: { flex: 1 },
+  savingOpacity: { opacity: 0.5 },
   scrollSpacer: { marginBottom: 16 },
 });
