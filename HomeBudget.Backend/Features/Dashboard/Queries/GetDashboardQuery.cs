@@ -14,170 +14,189 @@ public record GetDashboardQuery(int HouseholdId, int? Month, int? Year) : IReque
 
 public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, DashboardDto>
 {
-    private readonly HomeBudgetDbContext _db;
+    private readonly HomeBudgetDbContext _context;
 
-    public GetDashboardQueryHandler(HomeBudgetDbContext db) => _db = db;
+    public GetDashboardQueryHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<DashboardDto> Handle(GetDashboardQuery r, CancellationToken ct)
+    public async Task<DashboardDto> Handle(
+        GetDashboardQuery query,
+        CancellationToken cancellationToken
+    )
     {
-        var month = r.Month ?? DateTime.UtcNow.Month;
-        var year = r.Year ?? DateTime.UtcNow.Year;
+        var month = query.Month ?? DateTime.UtcNow.Month;
+        var year = query.Year ?? DateTime.UtcNow.Year;
 
-        var transactions = await _db
-            .Transactions.Include(t => t.User)
-            .Include(t => t.Category)
-            .Include(t => t.Account)
-            .Include(t => t.Receipt)
-            .Include(t => t.Splits)
-            .Include(t => t.TransactionTags)
-            .ThenInclude(tt => tt.Tag)
-            .Where(t =>
-                t.HouseholdId == r.HouseholdId && t.Date.Month == month && t.Date.Year == year
+        var transactions = await _context
+            .Transactions.Include(transaction => transaction.User)
+            .Include(transaction => transaction.Category)
+            .Include(transaction => transaction.Account)
+            .Include(transaction => transaction.Receipt)
+            .Include(transaction => transaction.Splits)
+            .Include(transaction => transaction.TransactionTags)
+            .ThenInclude(transactionTag => transactionTag.Tag)
+            .Where(transaction =>
+                transaction.HouseholdId == query.HouseholdId
+                && transaction.Date.Month == month
+                && transaction.Date.Year == year
             )
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-        var income = transactions.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
-        var expenses = transactions
+        var totalIncome = transactions
+            .Where(t => t.Type == TransactionType.Income)
+            .Sum(t => t.Amount);
+        var totalExpenses = transactions
             .Where(t => t.Type == TransactionType.Expense)
             .Sum(t => t.Amount);
 
-        var topCats = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .GroupBy(t => new
+        var topCategories = transactions
+            .Where(transaction => transaction.Type == TransactionType.Expense)
+            .GroupBy(transaction => new
             {
-                t.Category.Name,
-                t.Category.Color,
-                t.Category.Icon,
+                transaction.Category.Name,
+                transaction.Category.Color,
+                transaction.Category.Icon,
             })
-            .Select(g => new CategorySpendingDto(
-                g.Key.Name,
-                g.Key.Color,
-                g.Key.Icon,
-                g.Sum(t => t.Amount),
-                expenses > 0 ? (double)(g.Sum(t => t.Amount) / expenses * 100) : 0,
-                g.Count()
+            .Select(group => new CategorySpendingDto(
+                group.Key.Name,
+                group.Key.Color,
+                group.Key.Icon,
+                group.Sum(transaction => transaction.Amount),
+                totalExpenses > 0
+                    ? (double)(group.Sum(transaction => transaction.Amount) / totalExpenses * 100)
+                    : 0,
+                group.Count()
             ))
-            .OrderByDescending(c => c.Amount)
+            .OrderByDescending(category => category.Amount)
             .Take(5)
             .ToList();
 
-        var recent = transactions
-            .OrderByDescending(t => t.Date)
+        var recentTransactions = transactions
+            .OrderByDescending(transaction => transaction.Date)
             .Take(10)
-            .Select(t => new TransactionDto(
-                t.Id,
-                t.Title,
-                t.Amount,
-                t.Date,
-                t.Note,
-                t.Type,
-                t.PaymentMethod,
-                t.IsShared,
-                t.User.FirstName + " " + t.User.LastName,
-                t.UserId,
-                t.Category.Name,
-                t.Category.Icon,
-                t.Category.Color,
-                t.CategoryId,
-                t.Account.Name,
-                t.AccountId,
-                t.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
-                t.Receipt != null,
-                t.Splits.Any(),
-                t.CreatedAt
+            .Select(transaction => new TransactionDto(
+                transaction.Id,
+                transaction.Title,
+                transaction.Amount,
+                transaction.Date,
+                transaction.Note,
+                transaction.Type,
+                transaction.PaymentMethod,
+                transaction.IsShared,
+                transaction.User.FirstName + " " + transaction.User.LastName,
+                transaction.UserId,
+                transaction.Category.Name,
+                transaction.Category.Icon,
+                transaction.Category.Color,
+                transaction.CategoryId,
+                transaction.Account.Name,
+                transaction.AccountId,
+                transaction.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
+                transaction.Receipt != null,
+                transaction.Splits.Any(),
+                transaction.CreatedAt
             ))
             .ToList();
 
-        var budgets = await _db
-            .Budgets.Include(b => b.User)
-            .Include(b => b.Category)
-            .Where(b => b.HouseholdId == r.HouseholdId && b.Month == month && b.Year == year)
-            .ToListAsync(ct);
+        var budgets = await _context
+            .Budgets.Include(budget => budget.User)
+            .Include(budget => budget.Category)
+            .Where(budget =>
+                budget.HouseholdId == query.HouseholdId
+                && budget.Month == month
+                && budget.Year == year
+            )
+            .ToListAsync(cancellationToken);
 
-        var budgetDtos = budgets
-            .Select(b =>
+        var activeBudgets = budgets
+            .Select(budget =>
             {
                 var spent = transactions
-                    .Where(t => t.CategoryId == b.CategoryId && t.Type == TransactionType.Expense)
-                    .Sum(t => t.Amount);
+                    .Where(transaction =>
+                        transaction.CategoryId == budget.CategoryId
+                        && transaction.Type == TransactionType.Expense
+                    )
+                    .Sum(transaction => transaction.Amount);
+
                 return new BudgetDto(
-                    b.Id,
-                    b.Amount,
+                    budget.Id,
+                    budget.Amount,
                     spent,
-                    b.Amount - spent,
-                    b.Amount > 0 ? (double)(spent / b.Amount * 100) : 0,
-                    b.Month,
-                    b.Year,
-                    b.Category.Name,
-                    b.Category.Icon,
-                    b.Category.Color,
-                    b.CategoryId,
-                    b.User.FirstName + " " + b.User.LastName,
-                    b.UserId
+                    budget.Amount - spent,
+                    budget.Amount > 0 ? (double)(spent / budget.Amount * 100) : 0,
+                    budget.Month,
+                    budget.Year,
+                    budget.Category.Name,
+                    budget.Category.Icon,
+                    budget.Category.Color,
+                    budget.CategoryId,
+                    budget.User.FirstName + " " + budget.User.LastName,
+                    budget.UserId
                 );
             })
             .ToList();
 
-        var goals = await _db
-            .SavingsGoals.Where(sg => sg.HouseholdId == r.HouseholdId && !sg.IsCompleted)
-            .Select(sg => new SavingsGoalDto(
-                sg.Id,
-                sg.Name,
-                sg.TargetAmount,
-                sg.CurrentAmount,
-                sg.TargetAmount > 0 ? (double)(sg.CurrentAmount / sg.TargetAmount * 100) : 0,
-                sg.Deadline,
-                sg.Icon,
-                sg.Color,
-                sg.IsCompleted
+        var savingsGoals = await _context
+            .SavingsGoals.Where(goal => goal.HouseholdId == query.HouseholdId && !goal.IsCompleted)
+            .Select(goal => new SavingsGoalDto(
+                goal.Id,
+                goal.Name,
+                goal.TargetAmount,
+                goal.CurrentAmount,
+                goal.TargetAmount > 0 ? (double)(goal.CurrentAmount / goal.TargetAmount * 100) : 0,
+                goal.Deadline,
+                goal.Icon,
+                goal.Color,
+                goal.IsCompleted
             ))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-        var upcomingBills = await _db
-            .BillPayments.Include(bp => bp.Bill)
-            .Where(bp => bp.Bill.HouseholdId == r.HouseholdId && bp.Status != BillStatus.Paid)
-            .OrderBy(bp => bp.DueDate)
+        var upcomingBills = await _context
+            .BillPayments.Include(payment => payment.Bill)
+            .Where(payment =>
+                payment.Bill.HouseholdId == query.HouseholdId && payment.Status != BillStatus.Paid
+            )
+            .OrderBy(payment => payment.DueDate)
             .Take(5)
-            .Select(bp => new BillPaymentDto(
-                bp.Id,
-                bp.BillId,
-                bp.Bill.Name,
-                bp.Amount,
-                bp.DueDate,
-                bp.PaidDate,
-                bp.PaymentMethod,
-                bp.Status,
-                bp.TransactionId
+            .Select(payment => new BillPaymentDto(
+                payment.Id,
+                payment.BillId,
+                payment.Bill.Name,
+                payment.Amount,
+                payment.DueDate,
+                payment.PaidDate,
+                payment.PaymentMethod,
+                payment.Status,
+                payment.TransactionId
             ))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
-        var accounts = await _db
-            .Accounts.Include(a => a.User)
-            .Where(a =>
-                _db.HouseholdMembers.Any(hm =>
-                    hm.HouseholdId == r.HouseholdId && hm.UserId == a.UserId
+        var accounts = await _context
+            .Accounts.Include(account => account.User)
+            .Where(account =>
+                _context.HouseholdMembers.Any(member =>
+                    member.HouseholdId == query.HouseholdId && member.UserId == account.UserId
                 )
             )
-            .Select(a => new AccountDto(
-                a.Id,
-                a.Name,
-                a.Type,
-                a.Balance,
-                a.Color,
-                a.Icon,
-                a.UserId,
-                a.User.FirstName + " " + a.User.LastName
+            .Select(account => new AccountDto(
+                account.Id,
+                account.Name,
+                account.Type,
+                account.Balance,
+                account.Color,
+                account.Icon,
+                account.UserId,
+                account.User.FirstName + " " + account.User.LastName
             ))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new DashboardDto(
-            income,
-            expenses,
-            income - expenses,
-            topCats,
-            recent,
-            budgetDtos,
-            goals,
+            totalIncome,
+            totalExpenses,
+            totalIncome - totalExpenses,
+            topCategories,
+            recentTransactions,
+            activeBudgets,
+            savingsGoals,
             upcomingBills,
             accounts
         );

@@ -10,41 +10,43 @@ public record GetTransactionByIdQuery(int Id) : IRequest<TransactionDto?>;
 public class GetTransactionByIdQueryHandler
     : IRequestHandler<GetTransactionByIdQuery, TransactionDto?>
 {
-    private readonly HomeBudgetDbContext _db;
+    private readonly HomeBudgetDbContext _context;
 
-    public GetTransactionByIdQueryHandler(HomeBudgetDbContext db) => _db = db;
+    public GetTransactionByIdQueryHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<TransactionDto?> Handle(GetTransactionByIdQuery r, CancellationToken ct) =>
-        await _db
-            .Transactions.Include(t => t.User)
-            .Include(t => t.Category)
-            .Include(t => t.Account)
-            .Include(t => t.Receipt)
-            .Include(t => t.Splits)
-            .Include(t => t.TransactionTags)
-            .ThenInclude(tt => tt.Tag)
-            .Where(t => t.Id == r.Id)
-            .Select(t => new TransactionDto(
-                t.Id,
-                t.Title,
-                t.Amount,
-                t.Date,
-                t.Note,
-                t.Type,
-                t.PaymentMethod,
-                t.IsShared,
-                t.User.FirstName + " " + t.User.LastName,
-                t.UserId,
-                t.Category.Name,
-                t.Category.Icon,
-                t.Category.Color,
-                t.CategoryId,
-                t.Account.Name,
-                t.AccountId,
-                t.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
-                t.Receipt != null,
-                t.Splits.Any(),
-                t.CreatedAt
+    public async Task<TransactionDto?> Handle(
+        GetTransactionByIdQuery query,
+        CancellationToken cancellationToken) =>
+        await _context.Transactions
+            .Include(transaction => transaction.User)
+            .Include(transaction => transaction.Category)
+            .Include(transaction => transaction.Account)
+            .Include(transaction => transaction.Receipt)
+            .Include(transaction => transaction.Splits)
+            .Include(transaction => transaction.TransactionTags)
+                .ThenInclude(transactionTag => transactionTag.Tag)
+            .Where(transaction => transaction.Id == query.Id)
+            .Select(transaction => new TransactionDto(
+                transaction.Id,
+                transaction.Title,
+                transaction.Amount,
+                transaction.Date,
+                transaction.Note,
+                transaction.Type,
+                transaction.PaymentMethod,
+                transaction.IsShared,
+                transaction.User.FirstName + " " + transaction.User.LastName,
+                transaction.UserId,
+                transaction.Category.Name,
+                transaction.Category.Icon,
+                transaction.Category.Color,
+                transaction.CategoryId,
+                transaction.Account.Name,
+                transaction.AccountId,
+                transaction.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
+                transaction.Receipt != null,
+                transaction.Splits.Any(),
+                transaction.CreatedAt
             ))
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(cancellationToken);
 }
