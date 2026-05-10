@@ -9,14 +9,14 @@ namespace HomeBudget.API.Controllers;
 [Route("api/[controller]")]
 public class DashboardController : ControllerBase
 {
-    private readonly IMediator _m;
+    private readonly IMediator _mediator;
 
-    public DashboardController(IMediator m) => _m = m;
+    public DashboardController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet("{householdId}")]
     public async Task<ActionResult<DashboardDto>> Get(
         int householdId,
         [FromQuery] int? month,
         [FromQuery] int? year
-    ) => Ok(await _m.Send(new GetDashboardQuery(householdId, month, year)));
+    ) => Ok(await _mediator.Send(new GetDashboardQuery(householdId, month, year)));
 }
