@@ -19,17 +19,15 @@ public class CreateBudgetCommandHandler : IRequestHandler<CreateBudgetCommand, i
 
     public CreateBudgetCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<int> Handle(
-        CreateBudgetCommand command,
-        CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateBudgetCommand command, CancellationToken cancellationToken)
     {
         var budget = new Budget
         {
-            Amount      = command.Amount,
-            Month       = command.Month,
-            Year        = command.Year,
-            UserId      = command.UserId,
-            CategoryId  = command.CategoryId,
+            Amount = command.Amount,
+            Month = command.Month,
+            Year = command.Year,
+            UserId = command.UserId,
+            CategoryId = command.CategoryId,
             HouseholdId = command.HouseholdId,
         };
 

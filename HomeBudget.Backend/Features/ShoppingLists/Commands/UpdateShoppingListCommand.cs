@@ -14,14 +14,18 @@ public class UpdateShoppingListCommandHandler : IRequestHandler<UpdateShoppingLi
 
     public async Task<bool> Handle(
         UpdateShoppingListCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var shoppingList = await _context.ShoppingLists
-            .FirstOrDefaultAsync(shoppingList => shoppingList.Id == command.Id, cancellationToken);
+        var shoppingList = await _context.ShoppingLists.FirstOrDefaultAsync(
+            shoppingList => shoppingList.Id == command.Id,
+            cancellationToken
+        );
 
-        if (shoppingList is null) return false;
+        if (shoppingList is null)
+            return false;
 
-        shoppingList.Name        = command.Name;
+        shoppingList.Name = command.Name;
         shoppingList.IsCompleted = command.IsCompleted;
 
         if (command.IsCompleted && shoppingList.CompletedAt is null)

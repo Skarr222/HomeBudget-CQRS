@@ -21,22 +21,23 @@ public class UpdateBillCommandHandler : IRequestHandler<UpdateBillCommand, bool>
 
     public UpdateBillCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<bool> Handle(
-        UpdateBillCommand command,
-        CancellationToken cancellationToken)
+    public async Task<bool> Handle(UpdateBillCommand command, CancellationToken cancellationToken)
     {
-        var bill = await _context.Bills
-            .FirstOrDefaultAsync(bill => bill.Id == command.Id, cancellationToken);
+        var bill = await _context.Bills.FirstOrDefaultAsync(
+            bill => bill.Id == command.Id,
+            cancellationToken
+        );
 
-        if (bill is null) return false;
+        if (bill is null)
+            return false;
 
-        bill.Name            = command.Name;
-        bill.Provider        = command.Provider;
-        bill.DueDay          = command.DueDay;
+        bill.Name = command.Name;
+        bill.Provider = command.Provider;
+        bill.DueDay = command.DueDay;
         bill.EstimatedAmount = command.EstimatedAmount;
-        bill.Icon            = command.Icon;
-        bill.Color           = command.Color;
-        bill.IsActive        = command.IsActive;
+        bill.Icon = command.Icon;
+        bill.Color = command.Color;
+        bill.IsActive = command.IsActive;
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;

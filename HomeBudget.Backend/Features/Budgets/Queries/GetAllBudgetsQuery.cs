@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeBudget.Application.Budgets.Queries;
 
-public record GetAllBudgetsQuery(int HouseholdId, int? Month, int? Year) : IRequest<List<BudgetDto>>;
+public record GetAllBudgetsQuery(int HouseholdId, int? Month, int? Year)
+    : IRequest<List<BudgetDto>>;
 
 public class GetAllBudgetsQueryHandler : IRequestHandler<GetAllBudgetsQuery, List<BudgetDto>>
 {
@@ -16,49 +17,64 @@ public class GetAllBudgetsQueryHandler : IRequestHandler<GetAllBudgetsQuery, Lis
 
     public async Task<List<BudgetDto>> Handle(
         GetAllBudgetsQuery query,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var month = query.Month ?? DateTime.UtcNow.Month;
-        var year  = query.Year  ?? DateTime.UtcNow.Year;
+        var year = query.Year ?? DateTime.UtcNow.Year;
 
-        var budgets = await _context.Budgets
-            .Include(budget => budget.User)
+        var budgets = await _context
+            .Budgets.Include(budget => budget.User)
             .Include(budget => budget.Category)
-            .Where(budget => budget.HouseholdId == query.HouseholdId
-                          && budget.Month == month
-                          && budget.Year  == year)
+            .Where(budget =>
+                budget.HouseholdId == query.HouseholdId
+                && budget.Month == month
+                && budget.Year == year
+            )
             .ToListAsync(cancellationToken);
 
         var categoryIds = budgets.Select(budget => budget.CategoryId).Distinct().ToList();
 
-        var spentPerCategory = await _context.Transactions
-            .Where(transaction =>
-                transaction.HouseholdId == query.HouseholdId &&
-                transaction.Date.Month  == month &&
-                transaction.Date.Year   == year  &&
-                transaction.Type        == TransactionType.Expense &&
-                categoryIds.Contains(transaction.CategoryId))
+        var spentPerCategory = await _context
+            .Transactions.Where(transaction =>
+                transaction.HouseholdId == query.HouseholdId
+                && transaction.Date.Month == month
+                && transaction.Date.Year == year
+                && transaction.Type == TransactionType.Expense
+                && categoryIds.Contains(transaction.CategoryId)
+            )
             .GroupBy(transaction => transaction.CategoryId)
-            .Select(group => new { CategoryId = group.Key, TotalSpent = group.Sum(transaction => transaction.Amount) })
-            .ToDictionaryAsync(entry => entry.CategoryId, entry => entry.TotalSpent, cancellationToken);
+            .Select(group => new
+            {
+                CategoryId = group.Key,
+                TotalSpent = group.Sum(transaction => transaction.Amount),
+            })
+            .ToDictionaryAsync(
+                entry => entry.CategoryId,
+                entry => entry.TotalSpent,
+                cancellationToken
+            );
 
-        return budgets.Select(budget =>
-        {
-            var spent = spentPerCategory.GetValueOrDefault(budget.CategoryId, 0);
-            return new BudgetDto(
-                budget.Id,
-                budget.Amount,
-                spent,
-                budget.Amount - spent,
-                budget.Amount > 0 ? (double)(spent / budget.Amount * 100) : 0,
-                budget.Month,
-                budget.Year,
-                budget.Category.Name,
-                budget.Category.Icon,
-                budget.Category.Color,
-                budget.CategoryId,
-                budget.User.FirstName + " " + budget.User.LastName,
-                budget.UserId);
-        }).ToList();
+        return budgets
+            .Select(budget =>
+            {
+                var spent = spentPerCategory.GetValueOrDefault(budget.CategoryId, 0);
+                return new BudgetDto(
+                    budget.Id,
+                    budget.Amount,
+                    spent,
+                    budget.Amount - spent,
+                    budget.Amount > 0 ? (double)(spent / budget.Amount * 100) : 0,
+                    budget.Month,
+                    budget.Year,
+                    budget.Category.Name,
+                    budget.Category.Icon,
+                    budget.Category.Color,
+                    budget.CategoryId,
+                    budget.User.FirstName + " " + budget.User.LastName,
+                    budget.UserId
+                );
+            })
+            .ToList();
     }
 }

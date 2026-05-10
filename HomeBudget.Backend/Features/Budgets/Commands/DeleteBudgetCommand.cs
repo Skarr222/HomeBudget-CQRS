@@ -12,14 +12,15 @@ public class DeleteBudgetCommandHandler : IRequestHandler<DeleteBudgetCommand, b
 
     public DeleteBudgetCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<bool> Handle(
-        DeleteBudgetCommand command,
-        CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteBudgetCommand command, CancellationToken cancellationToken)
     {
-        var budget = await _context.Budgets
-            .FirstOrDefaultAsync(budget => budget.Id == command.Id, cancellationToken);
+        var budget = await _context.Budgets.FirstOrDefaultAsync(
+            budget => budget.Id == command.Id,
+            cancellationToken
+        );
 
-        if (budget is null) return false;
+        if (budget is null)
+            return false;
 
         _context.Budgets.Remove(budget);
         await _context.SaveChangesAsync(cancellationToken);

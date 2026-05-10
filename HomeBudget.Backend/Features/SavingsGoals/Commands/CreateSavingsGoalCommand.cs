@@ -21,7 +21,8 @@ public class CreateSavingsGoalCommandHandler : IRequestHandler<CreateSavingsGoal
 
     public async Task<int> Handle(
         CreateSavingsGoalCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var goal = new SavingsGoal
         {

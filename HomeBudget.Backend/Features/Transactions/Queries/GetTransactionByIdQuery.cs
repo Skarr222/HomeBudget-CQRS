@@ -16,15 +16,16 @@ public class GetTransactionByIdQueryHandler
 
     public async Task<TransactionDto?> Handle(
         GetTransactionByIdQuery query,
-        CancellationToken cancellationToken) =>
-        await _context.Transactions
-            .Include(transaction => transaction.User)
+        CancellationToken cancellationToken
+    ) =>
+        await _context
+            .Transactions.Include(transaction => transaction.User)
             .Include(transaction => transaction.Category)
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Receipt)
             .Include(transaction => transaction.Splits)
             .Include(transaction => transaction.TransactionTags)
-                .ThenInclude(transactionTag => transactionTag.Tag)
+            .ThenInclude(transactionTag => transactionTag.Tag)
             .Where(transaction => transaction.Id == query.Id)
             .Select(transaction => new TransactionDto(
                 transaction.Id,

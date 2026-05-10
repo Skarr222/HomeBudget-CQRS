@@ -12,14 +12,15 @@ public class UpdateBudgetCommandHandler : IRequestHandler<UpdateBudgetCommand, b
 
     public UpdateBudgetCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<bool> Handle(
-        UpdateBudgetCommand command,
-        CancellationToken cancellationToken)
+    public async Task<bool> Handle(UpdateBudgetCommand command, CancellationToken cancellationToken)
     {
-        var budget = await _context.Budgets
-            .FirstOrDefaultAsync(budget => budget.Id == command.Id, cancellationToken);
+        var budget = await _context.Budgets.FirstOrDefaultAsync(
+            budget => budget.Id == command.Id,
+            cancellationToken
+        );
 
-        if (budget is null) return false;
+        if (budget is null)
+            return false;
 
         budget.Amount = command.Amount;
         await _context.SaveChangesAsync(cancellationToken);

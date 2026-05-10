@@ -22,7 +22,12 @@ public class TransactionsController : ControllerBase
         [FromQuery] int? accountId,
         [FromQuery] int? month,
         [FromQuery] int? year
-    ) => Ok(await _mediator.Send(new GetAllTransactionsQuery(householdId, userId, categoryId, accountId, month, year)));
+    ) =>
+        Ok(
+            await _mediator.Send(
+                new GetAllTransactionsQuery(householdId, userId, categoryId, accountId, month, year)
+            )
+        );
 
     [HttpGet("{id}")]
     public async Task<ActionResult<TransactionDto>> GetById(int id)
@@ -41,7 +46,11 @@ public class TransactionsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTransactionCommand command)
     {
-        if (id != command.Id) return BadRequest();
+        if (id != command.Id)
+        {
+            return BadRequest();
+        }
+
         var success = await _mediator.Send(command);
         return success ? NoContent() : NotFound();
     }

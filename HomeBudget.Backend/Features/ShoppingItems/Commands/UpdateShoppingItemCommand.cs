@@ -20,11 +20,13 @@ public class UpdateShoppingItemCommandHandler : IRequestHandler<UpdateShoppingIt
 
     public async Task<bool> Handle(
         UpdateShoppingItemCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var item = await _context.ShoppingItems.FirstOrDefaultAsync(
             item => item.Id == command.Id,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (item is null)
             return false;

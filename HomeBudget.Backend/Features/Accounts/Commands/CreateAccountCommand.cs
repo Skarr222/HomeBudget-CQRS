@@ -20,18 +20,16 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
 
     public CreateAccountCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<int> Handle(
-        CreateAccountCommand command,
-        CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateAccountCommand command, CancellationToken cancellationToken)
     {
         var account = new Account
         {
-            Name      = command.Name,
-            Type      = command.Type,
-            Balance   = command.Balance,
-            Color     = command.Color,
-            Icon      = command.Icon,
-            UserId    = command.UserId,
+            Name = command.Name,
+            Type = command.Type,
+            Balance = command.Balance,
+            Color = command.Color,
+            Icon = command.Icon,
+            UserId = command.UserId,
             CreatedAt = DateTime.UtcNow,
         };
 

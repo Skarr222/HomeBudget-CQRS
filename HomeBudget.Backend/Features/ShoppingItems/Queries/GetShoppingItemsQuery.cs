@@ -7,7 +7,8 @@ namespace HomeBudget.Application.ShoppingItems.Queries;
 
 public record GetShoppingItemsQuery(int ShoppingListId) : IRequest<List<ShoppingItemDto>>;
 
-public class GetShoppingItemsQueryHandler : IRequestHandler<GetShoppingItemsQuery, List<ShoppingItemDto>>
+public class GetShoppingItemsQueryHandler
+    : IRequestHandler<GetShoppingItemsQuery, List<ShoppingItemDto>>
 {
     private readonly HomeBudgetDbContext _context;
 
@@ -15,9 +16,10 @@ public class GetShoppingItemsQueryHandler : IRequestHandler<GetShoppingItemsQuer
 
     public async Task<List<ShoppingItemDto>> Handle(
         GetShoppingItemsQuery query,
-        CancellationToken cancellationToken) =>
-        await _context.ShoppingItems
-            .Where(item => item.ShoppingListId == query.ShoppingListId)
+        CancellationToken cancellationToken
+    ) =>
+        await _context
+            .ShoppingItems.Where(item => item.ShoppingListId == query.ShoppingListId)
             .OrderBy(item => item.IsChecked)
             .ThenBy(item => item.Id)
             .Select(item => new ShoppingItemDto(
@@ -26,6 +28,7 @@ public class GetShoppingItemsQueryHandler : IRequestHandler<GetShoppingItemsQuer
                 item.Quantity,
                 item.EstimatedPrice,
                 item.IsChecked,
-                item.ShoppingListId))
+                item.ShoppingListId
+            ))
             .ToListAsync(cancellationToken);
 }

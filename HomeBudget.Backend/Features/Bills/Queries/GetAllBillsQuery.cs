@@ -17,47 +17,55 @@ public class GetAllBillsQueryHandler : IRequestHandler<GetAllBillsQuery, List<Bi
 
     public async Task<List<BillDto>> Handle(
         GetAllBillsQuery query,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var bills = await _context.Bills
-            .Include(bill => bill.Category)
+        var bills = await _context
+            .Bills.Include(bill => bill.Category)
             .Include(bill => bill.Payments)
             .Where(bill => bill.HouseholdId == query.HouseholdId)
             .OrderBy(bill => bill.DueDay)
             .ToListAsync(cancellationToken);
 
-        return bills.Select(bill =>
-        {
-            var nextPayment = bill.Payments
-                .Where(payment => payment.Status != BillStatus.Paid)
-                .OrderBy(payment => payment.DueDate)
-                .FirstOrDefault();
+        return bills
+            .Select(bill =>
+            {
+                var nextPayment = bill
+                    .Payments.Where(payment => payment.Status != BillStatus.Paid)
+                    .OrderBy(payment => payment.DueDate)
+                    .FirstOrDefault();
 
-            var nextPaymentDto = nextPayment is null ? null : new BillPaymentDto(
-                nextPayment.Id,
-                nextPayment.BillId,
-                bill.Name,
-                nextPayment.Amount,
-                nextPayment.DueDate,
-                nextPayment.PaidDate,
-                nextPayment.PaymentMethod,
-                nextPayment.Status,
-                nextPayment.TransactionId);
+                var nextPaymentDto = nextPayment is null
+                    ? null
+                    : new BillPaymentDto(
+                        nextPayment.Id,
+                        nextPayment.BillId,
+                        bill.Name,
+                        nextPayment.Amount,
+                        nextPayment.DueDate,
+                        nextPayment.PaidDate,
+                        nextPayment.PaymentMethod,
+                        nextPayment.Status,
+                        nextPayment.TransactionId
+                    );
 
-            return new BillDto(
-                bill.Id,
-                bill.Name,
-                bill.Provider,
-                bill.DueDay,
-                bill.EstimatedAmount,
-                bill.Icon,
-                bill.Color,
-                bill.IsActive,
-                bill.Category.Name,
-                bill.CategoryId,
-                nextPaymentDto,
-                bill.Payments.Where(payment => payment.Status == BillStatus.Paid).Sum(payment => payment.Amount),
-                bill.Payments.Count(payment => payment.Status == BillStatus.Paid));
-        }).ToList();
+                return new BillDto(
+                    bill.Id,
+                    bill.Name,
+                    bill.Provider,
+                    bill.DueDay,
+                    bill.EstimatedAmount,
+                    bill.Icon,
+                    bill.Color,
+                    bill.IsActive,
+                    bill.Category.Name,
+                    bill.CategoryId,
+                    nextPaymentDto,
+                    bill.Payments.Where(payment => payment.Status == BillStatus.Paid)
+                        .Sum(payment => payment.Amount),
+                    bill.Payments.Count(payment => payment.Status == BillStatus.Paid)
+                );
+            })
+            .ToList();
     }
 }

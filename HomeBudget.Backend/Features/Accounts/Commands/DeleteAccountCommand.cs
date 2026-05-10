@@ -14,12 +14,16 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand,
 
     public async Task<bool> Handle(
         DeleteAccountCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var account = await _context.Accounts
-            .FirstOrDefaultAsync(account => account.Id == command.Id, cancellationToken);
+        var account = await _context.Accounts.FirstOrDefaultAsync(
+            account => account.Id == command.Id,
+            cancellationToken
+        );
 
-        if (account is null) return false;
+        if (account is null)
+            return false;
 
         _context.Accounts.Remove(account);
         await _context.SaveChangesAsync(cancellationToken);

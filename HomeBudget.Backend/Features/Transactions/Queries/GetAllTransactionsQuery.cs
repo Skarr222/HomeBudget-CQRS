@@ -23,29 +23,37 @@ public class GetAllTransactionsQueryHandler
 
     public async Task<List<TransactionDto>> Handle(
         GetAllTransactionsQuery query,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var transactions = _context.Transactions
-            .Include(transaction => transaction.User)
+        var transactions = _context
+            .Transactions.Include(transaction => transaction.User)
             .Include(transaction => transaction.Category)
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Receipt)
             .Include(transaction => transaction.Splits)
             .Include(transaction => transaction.TransactionTags)
-                .ThenInclude(transactionTag => transactionTag.Tag)
+            .ThenInclude(transactionTag => transactionTag.Tag)
             .AsQueryable();
 
         if (query.HouseholdId.HasValue)
-            transactions = transactions.Where(transaction => transaction.HouseholdId == query.HouseholdId);
+            transactions = transactions.Where(transaction =>
+                transaction.HouseholdId == query.HouseholdId
+            );
         if (query.UserId.HasValue)
             transactions = transactions.Where(transaction => transaction.UserId == query.UserId);
         if (query.CategoryId.HasValue)
-            transactions = transactions.Where(transaction => transaction.CategoryId == query.CategoryId);
+            transactions = transactions.Where(transaction =>
+                transaction.CategoryId == query.CategoryId
+            );
         if (query.AccountId.HasValue)
-            transactions = transactions.Where(transaction => transaction.AccountId == query.AccountId);
+            transactions = transactions.Where(transaction =>
+                transaction.AccountId == query.AccountId
+            );
         if (query.Month.HasValue && query.Year.HasValue)
             transactions = transactions.Where(transaction =>
-                transaction.Date.Month == query.Month && transaction.Date.Year == query.Year);
+                transaction.Date.Month == query.Month && transaction.Date.Year == query.Year
+            );
 
         return await transactions
             .OrderByDescending(transaction => transaction.Date)

@@ -19,7 +19,8 @@ public class CreateShoppingItemCommandHandler : IRequestHandler<CreateShoppingIt
 
     public async Task<int> Handle(
         CreateShoppingItemCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var item = new ShoppingItem
         {

@@ -15,11 +15,10 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
 
     public async Task<List<AccountDto>> Handle(
         GetAllAccountsQuery query,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var accounts = _context.Accounts
-            .Include(account => account.User)
-            .AsQueryable();
+        var accounts = _context.Accounts.Include(account => account.User).AsQueryable();
 
         if (query.UserId.HasValue)
             accounts = accounts.Where(account => account.UserId == query.UserId);
@@ -27,8 +26,9 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
         if (query.HouseholdId.HasValue)
             accounts = accounts.Where(account =>
                 _context.HouseholdMembers.Any(member =>
-                    member.HouseholdId == query.HouseholdId &&
-                    member.UserId == account.UserId));
+                    member.HouseholdId == query.HouseholdId && member.UserId == account.UserId
+                )
+            );
 
         return await accounts
             .OrderBy(account => account.Name)
@@ -40,7 +40,8 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
                 account.Color,
                 account.Icon,
                 account.UserId,
-                account.User.FirstName + " " + account.User.LastName))
+                account.User.FirstName + " " + account.User.LastName
+            ))
             .ToListAsync(cancellationToken);
     }
 }

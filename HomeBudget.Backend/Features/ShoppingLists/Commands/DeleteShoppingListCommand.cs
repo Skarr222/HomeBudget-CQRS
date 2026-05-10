@@ -14,12 +14,16 @@ public class DeleteShoppingListCommandHandler : IRequestHandler<DeleteShoppingLi
 
     public async Task<bool> Handle(
         DeleteShoppingListCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var shoppingList = await _context.ShoppingLists
-            .FirstOrDefaultAsync(shoppingList => shoppingList.Id == command.Id, cancellationToken);
+        var shoppingList = await _context.ShoppingLists.FirstOrDefaultAsync(
+            shoppingList => shoppingList.Id == command.Id,
+            cancellationToken
+        );
 
-        if (shoppingList is null) return false;
+        if (shoppingList is null)
+            return false;
 
         _context.ShoppingLists.Remove(shoppingList);
         await _context.SaveChangesAsync(cancellationToken);

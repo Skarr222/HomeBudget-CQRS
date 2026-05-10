@@ -12,14 +12,15 @@ public class DeleteBillCommandHandler : IRequestHandler<DeleteBillCommand, bool>
 
     public DeleteBillCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<bool> Handle(
-        DeleteBillCommand command,
-        CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteBillCommand command, CancellationToken cancellationToken)
     {
-        var bill = await _context.Bills
-            .FirstOrDefaultAsync(bill => bill.Id == command.Id, cancellationToken);
+        var bill = await _context.Bills.FirstOrDefaultAsync(
+            bill => bill.Id == command.Id,
+            cancellationToken
+        );
 
-        if (bill is null) return false;
+        if (bill is null)
+            return false;
 
         _context.Bills.Remove(bill);
         await _context.SaveChangesAsync(cancellationToken);

@@ -21,21 +21,19 @@ public class CreateBillCommandHandler : IRequestHandler<CreateBillCommand, int>
 
     public CreateBillCommandHandler(HomeBudgetDbContext context) => _context = context;
 
-    public async Task<int> Handle(
-        CreateBillCommand command,
-        CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateBillCommand command, CancellationToken cancellationToken)
     {
         var bill = new Bill
         {
-            Name            = command.Name,
-            Provider        = command.Provider,
-            DueDay          = command.DueDay,
+            Name = command.Name,
+            Provider = command.Provider,
+            DueDay = command.DueDay,
             EstimatedAmount = command.EstimatedAmount,
-            Icon            = command.Icon,
-            Color           = command.Color,
-            IsActive        = true,
-            HouseholdId     = command.HouseholdId,
-            CategoryId      = command.CategoryId,
+            Icon = command.Icon,
+            Color = command.Color,
+            IsActive = true,
+            HouseholdId = command.HouseholdId,
+            CategoryId = command.CategoryId,
         };
 
         _context.Bills.Add(bill);

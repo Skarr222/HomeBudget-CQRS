@@ -14,12 +14,16 @@ public class DeleteTransactionCommandHandler : IRequestHandler<DeleteTransaction
 
     public async Task<bool> Handle(
         DeleteTransactionCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var transaction = await _context.Transactions
-            .FirstOrDefaultAsync(transaction => transaction.Id == command.Id, cancellationToken);
+        var transaction = await _context.Transactions.FirstOrDefaultAsync(
+            transaction => transaction.Id == command.Id,
+            cancellationToken
+        );
 
-        if (transaction is null) return false;
+        if (transaction is null)
+            return false;
 
         _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync(cancellationToken);

@@ -14,11 +14,13 @@ public class DeleteShoppingItemCommandHandler : IRequestHandler<DeleteShoppingIt
 
     public async Task<bool> Handle(
         DeleteShoppingItemCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var item = await _context.ShoppingItems.FirstOrDefaultAsync(
             item => item.Id == command.Id,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (item is null)
             return false;

@@ -7,7 +7,8 @@ namespace HomeBudget.Application.SavingsGoals.Queries;
 
 public record GetAllSavingsGoalsQuery(int HouseholdId) : IRequest<List<SavingsGoalDto>>;
 
-public class GetAllSavingsGoalsQueryHandler : IRequestHandler<GetAllSavingsGoalsQuery, List<SavingsGoalDto>>
+public class GetAllSavingsGoalsQueryHandler
+    : IRequestHandler<GetAllSavingsGoalsQuery, List<SavingsGoalDto>>
 {
     private readonly HomeBudgetDbContext _context;
 
@@ -15,9 +16,10 @@ public class GetAllSavingsGoalsQueryHandler : IRequestHandler<GetAllSavingsGoals
 
     public async Task<List<SavingsGoalDto>> Handle(
         GetAllSavingsGoalsQuery query,
-        CancellationToken cancellationToken) =>
-        await _context.SavingsGoals
-            .Where(goal => goal.HouseholdId == query.HouseholdId)
+        CancellationToken cancellationToken
+    ) =>
+        await _context
+            .SavingsGoals.Where(goal => goal.HouseholdId == query.HouseholdId)
             .OrderByDescending(goal => goal.CreatedAt)
             .Select(goal => new SavingsGoalDto(
                 goal.Id,
@@ -28,6 +30,7 @@ public class GetAllSavingsGoalsQueryHandler : IRequestHandler<GetAllSavingsGoals
                 goal.Deadline,
                 goal.Icon,
                 goal.Color,
-                goal.IsCompleted))
+                goal.IsCompleted
+            ))
             .ToListAsync(cancellationToken);
 }

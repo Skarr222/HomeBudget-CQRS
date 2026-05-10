@@ -14,12 +14,16 @@ public class DeleteSavingsGoalCommandHandler : IRequestHandler<DeleteSavingsGoal
 
     public async Task<bool> Handle(
         DeleteSavingsGoalCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var goal = await _context.SavingsGoals
-            .FirstOrDefaultAsync(goal => goal.Id == command.Id, cancellationToken);
+        var goal = await _context.SavingsGoals.FirstOrDefaultAsync(
+            goal => goal.Id == command.Id,
+            cancellationToken
+        );
 
-        if (goal is null) return false;
+        if (goal is null)
+            return false;
 
         _context.SavingsGoals.Remove(goal);
         await _context.SaveChangesAsync(cancellationToken);

@@ -30,7 +30,10 @@ public class AccountsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountCommand command)
     {
-        if (id != command.Id) return BadRequest();
+        if (id != command.Id)
+        {
+            return BadRequest();
+        }
         var success = await _mediator.Send(command);
         return success ? NoContent() : NotFound();
     }

@@ -28,32 +28,32 @@ public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransaction
 
     public async Task<bool> Handle(
         UpdateTransactionCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var transaction = await _context.Transactions
-            .Include(transaction => transaction.TransactionTags)
+        var transaction = await _context
+            .Transactions.Include(transaction => transaction.TransactionTags)
             .FirstOrDefaultAsync(transaction => transaction.Id == command.Id, cancellationToken);
 
-        if (transaction is null) return false;
+        if (transaction is null)
+            return false;
 
-        transaction.Title         = command.Title;
-        transaction.Amount        = command.Amount;
-        transaction.Date          = command.Date;
-        transaction.Note          = command.Note;
-        transaction.Type          = command.Type;
+        transaction.Title = command.Title;
+        transaction.Amount = command.Amount;
+        transaction.Date = command.Date;
+        transaction.Note = command.Note;
+        transaction.Type = command.Type;
         transaction.PaymentMethod = command.PaymentMethod;
-        transaction.IsShared      = command.IsShared;
-        transaction.CategoryId    = command.CategoryId;
-        transaction.AccountId     = command.AccountId;
+        transaction.IsShared = command.IsShared;
+        transaction.CategoryId = command.CategoryId;
+        transaction.AccountId = command.AccountId;
 
         transaction.TransactionTags.Clear();
         if (command.TagIds?.Count > 0)
             foreach (var tagId in command.TagIds)
-                transaction.TransactionTags.Add(new TransactionTag
-                {
-                    TransactionId = command.Id,
-                    TagId         = tagId,
-                });
+                transaction.TransactionTags.Add(
+                    new TransactionTag { TransactionId = command.Id, TagId = tagId }
+                );
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
