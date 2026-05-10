@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
@@ -11,24 +10,39 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { transactionsApi } from "../../api/apiService";
-import { TransactionDto } from "../../models/types";
+import { accountsApi, categoriesApi, transactionsApi } from "../../api/apiService";
+import {
+  AccountDto,
+  CategoryDto,
+  TransactionDto,
+  TransactionFilter,
+} from "../../models/types";
 import { colors, formatCurrency, formatDate } from "../../utils/helpers";
+import { s } from "../../styles/Transactions";
+import FormModal from "./components/FormModal";
 
 const HOUSEHOLD_ID = 1;
 
-type Filter = "all" | "expense" | "income";
-
 export default function TransactionsScreen() {
   const [transactions, setTransactions] = useState<TransactionDto[]>([]);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [accounts, setAccounts] = useState<AccountDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<TransactionFilter>("all");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editing, setEditing] = useState<TransactionDto | null>(null);
 
   const fetchData = async () => {
     try {
-      const res = await transactionsApi.getAll({ householdId: HOUSEHOLD_ID });
-      setTransactions(res.data);
+      const [txRes, catRes, accRes] = await Promise.all([
+        transactionsApi.getAll({ householdId: HOUSEHOLD_ID }),
+        categoriesApi.getAll(),
+        accountsApi.getAll({ householdId: HOUSEHOLD_ID }),
+      ]);
+      setTransactions(txRes.data);
+      setCategories(catRes.data);
+      setAccounts(accRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -44,7 +58,7 @@ export default function TransactionsScreen() {
   );
 
   const handleDelete = (id: number, title: string) => {
-    Alert.alert("Usuń", `Usunąć "${title}"?`, [
+    Alert.alert("Usuń transakcję", `Usunąć "${title}"?`, [
       { text: "Anuluj", style: "cancel" },
       {
         text: "Usuń",
@@ -53,13 +67,21 @@ export default function TransactionsScreen() {
           try {
             await transactionsApi.delete(id);
             setTransactions((prev) => prev.filter((t) => t.id !== id));
-          } catch (err) {
-            console.error(err);
+          } catch {
             Alert.alert("Błąd", "Nie udało się usunąć");
           }
         },
       },
     ]);
+  };
+
+  const openAdd = () => {
+    setEditing(null);
+    setModalVisible(true);
+  };
+  const openEdit = (t: TransactionDto) => {
+    setEditing(t);
+    setModalVisible(true);
   };
 
   const filtered = transactions.filter((t) => {
@@ -70,51 +92,44 @@ export default function TransactionsScreen() {
 
   const totalIncome = transactions
     .filter((t) => t.type === "Income")
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = transactions
     .filter((t) => t.type === "Expense")
-    .reduce((s, t) => s + t.amount, 0);
+    .reduce((sum, t) => sum + t.amount, 0);
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={s.center}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Summary */}
-      <View style={styles.summary}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Przychody</Text>
-          <Text style={[styles.summaryValue, { color: colors.income }]}>
+    <View style={s.container}>
+      <View style={s.summary}>
+        <View style={s.summaryCard}>
+          <Text style={s.summaryLabel}>Przychody</Text>
+          <Text style={[s.summaryValue, { color: colors.income }]}>
             +{formatCurrency(totalIncome)}
           </Text>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Wydatki</Text>
-          <Text style={[styles.summaryValue, { color: colors.expense }]}>
+        <View style={s.summaryCard}>
+          <Text style={s.summaryLabel}>Wydatki</Text>
+          <Text style={[s.summaryValue, { color: colors.expense }]}>
             -{formatCurrency(totalExpense)}
           </Text>
         </View>
       </View>
 
-      {/* Filter tabs */}
-      <View style={styles.filterRow}>
-        {(["all", "expense", "income"] as Filter[]).map((f) => (
+      <View style={s.filterRow}>
+        {(["all", "expense", "income"] as TransactionFilter[]).map((f) => (
           <TouchableOpacity
             key={f}
-            style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
+            style={[s.filterBtn, filter === f && s.filterBtnActive]}
             onPress={() => setFilter(f)}
           >
-            <Text
-              style={[
-                styles.filterText,
-                filter === f && styles.filterTextActive,
-              ]}
-            >
+            <Text style={[s.filterText, filter === f && s.filterTextActive]}>
               {f === "all"
                 ? "Wszystkie"
                 : f === "expense"
@@ -127,96 +142,8 @@ export default function TransactionsScreen() {
 
       <FlatList
         data={filtered}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View
-              style={[
-                styles.iconBox,
-                { backgroundColor: item.categoryColor + "20" },
-              ]}
-            >
-              <Text style={{ color: item.categoryColor, fontWeight: "700" }}>
-                {item.categoryName[0]}
-              </Text>
-            </View>
-            <View style={styles.cardInfo}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardMeta}>
-                {item.categoryName} · {item.accountName} ·{" "}
-                {formatDate(item.date)}
-              </Text>
-              <Text style={styles.cardSubMeta}>
-                {item.userName} · {item.paymentMethod}
-              </Text>
-              {(item.tags.length > 0 ||
-                item.isShared ||
-                item.hasReceipt ||
-                item.hasSplit) && (
-                <View style={styles.badgesRow}>
-                  {item.tags.map((tag, i) => (
-                    <View key={i} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag}</Text>
-                    </View>
-                  ))}
-                  {item.isShared && (
-                    <View style={styles.badgeShared}>
-                      <MaterialIcons
-                        name="people"
-                        size={11}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.badgeSharedText}>Wspólny</Text>
-                    </View>
-                  )}
-                  {item.hasReceipt && (
-                    <View style={styles.badgeReceipt}>
-                      <MaterialIcons
-                        name="receipt-long"
-                        size={11}
-                        color={colors.warning}
-                      />
-                    </View>
-                  )}
-                  {item.hasSplit && (
-                    <View style={styles.badgeSplit}>
-                      <MaterialIcons
-                        name="call-split"
-                        size={11}
-                        color={colors.success}
-                      />
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-            <View style={styles.cardRight}>
-              <Text
-                style={[
-                  styles.amount,
-                  {
-                    color:
-                      item.type === "Income" ? colors.income : colors.expense,
-                  },
-                ]}
-              >
-                {item.type === "Income" ? "+" : "-"}
-                {formatCurrency(item.amount)}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleDelete(item.id, item.title)}
-                style={styles.deleteBtn}
-              >
-                <MaterialIcons
-                  name="delete-outline"
-                  size={18}
-                  color={colors.textMuted}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -226,109 +153,78 @@ export default function TransactionsScreen() {
             }}
           />
         }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>Brak transakcji</Text>
-        }
+        ListEmptyComponent={<Text style={s.emptyText}>Brak transakcji</Text>}
+        renderItem={({ item }) => (
+          <View style={s.card}>
+            <View
+              style={[
+                s.iconBox,
+                { backgroundColor: item.categoryColor + "20" },
+              ]}
+            >
+              <Text style={[s.categoryIconText, { color: item.categoryColor }]}>
+                {item.categoryName[0]}
+              </Text>
+            </View>
+            <View style={s.cardInfo}>
+              <Text style={s.cardTitle}>{item.title}</Text>
+              <Text style={s.cardMeta}>
+                {item.categoryName} · {item.accountName} ·{" "}
+                {formatDate(item.date)}
+              </Text>
+              <Text style={s.cardSubMeta}>{item.paymentMethod}</Text>
+            </View>
+            <View style={s.cardRight}>
+              <Text
+                style={[
+                  s.amount,
+                  {
+                    color:
+                      item.type === "Income" ? colors.income : colors.expense,
+                  },
+                ]}
+              >
+                {item.type === "Income" ? "+" : "-"}
+                {formatCurrency(item.amount)}
+              </Text>
+              <View style={s.actions}>
+                <TouchableOpacity
+                  onPress={() => openEdit(item)}
+                  style={s.actionBtn}
+                >
+                  <MaterialIcons name="edit" size={17} color={colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDelete(item.id, item.title)}
+                  style={s.actionBtn}
+                >
+                  <MaterialIcons
+                    name="delete-outline"
+                    size={17}
+                    color={colors.textMuted}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+      />
+
+      <TouchableOpacity style={s.fab} onPress={openAdd}>
+        <MaterialIcons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+
+      <FormModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSave={() => {
+          setModalVisible(false);
+          fetchData();
+        }}
+        editing={editing}
+        categories={categories}
+        accounts={accounts}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: {
-    textAlign: "center",
-    color: colors.textMuted,
-    marginTop: 40,
-    fontSize: 16,
-  },
-
-  summary: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    gap: 10,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-  },
-  summaryLabel: { fontSize: 12, color: colors.textMuted },
-  summaryValue: { fontSize: 18, fontWeight: "700", marginTop: 4 },
-
-  filterRow: { flexDirection: "row", padding: 16, gap: 8 },
-  filterBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filterBtnActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterText: { fontSize: 13, color: colors.textSecondary, fontWeight: "600" },
-  filterTextActive: { color: "#fff" },
-
-  card: {
-    flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-  },
-  iconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  cardInfo: { flex: 1 },
-  cardTitle: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  cardMeta: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
-  cardSubMeta: { color: colors.textMuted, fontSize: 10, marginTop: 1 },
-  badgesRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 6,
-    gap: 4,
-    alignItems: "center",
-  },
-  tag: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  tagText: { fontSize: 10, color: colors.textSecondary },
-  badgeShared: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.primary + "15",
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    gap: 3,
-  },
-  badgeSharedText: { fontSize: 10, color: colors.primary, fontWeight: "600" },
-  badgeReceipt: {
-    backgroundColor: colors.warning + "15",
-    borderRadius: 6,
-    padding: 3,
-  },
-  badgeSplit: {
-    backgroundColor: colors.success + "15",
-    borderRadius: 6,
-    padding: 3,
-  },
-  cardRight: { alignItems: "flex-end", justifyContent: "space-between" },
-  amount: { fontWeight: "700", fontSize: 15 },
-  deleteBtn: { marginTop: 4 },
-});

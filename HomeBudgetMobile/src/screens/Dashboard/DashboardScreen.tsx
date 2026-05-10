@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
@@ -17,6 +16,7 @@ import {
   formatShortDate,
   getMonthName,
 } from "../../utils/helpers";
+import { styles } from "../../styles/Dashboard";
 
 const HOUSEHOLD_ID = 1;
 
@@ -87,25 +87,15 @@ export default function DashboardScreen() {
         </Text>
         <View style={styles.heroRow}>
           <View style={styles.heroItem}>
-            <MaterialIcons
-              name="trending-up"
-              size={16}
-              color={colors.successLight}
-            />
+            <MaterialIcons name="trending-up" size={16} color={colors.successLight} />
             <Text style={styles.heroItemLabel}>Przychody</Text>
-            <Text
-              style={[styles.heroItemValue, { color: colors.successLight }]}
-            >
+            <Text style={[styles.heroItemValue, { color: colors.successLight }]}>
               {formatCurrency(data.totalIncome)}
             </Text>
           </View>
           <View style={styles.heroDivider} />
           <View style={styles.heroItem}>
-            <MaterialIcons
-              name="trending-down"
-              size={16}
-              color={colors.dangerLight}
-            />
+            <MaterialIcons name="trending-down" size={16} color={colors.dangerLight} />
             <Text style={styles.heroItemLabel}>Wydatki</Text>
             <Text style={[styles.heroItemValue, { color: colors.dangerLight }]}>
               {formatCurrency(data.totalExpenses)}
@@ -126,10 +116,7 @@ export default function DashboardScreen() {
             {data.accounts.map((a) => (
               <View
                 key={a.id}
-                style={[
-                  styles.accountCard,
-                  { borderLeftColor: a.color, borderLeftWidth: 4 },
-                ]}
+                style={[styles.accountCard, { borderLeftColor: a.color, borderLeftWidth: 4 }]}
               >
                 <Text style={styles.accountName}>{a.name}</Text>
                 <Text style={styles.accountUser}>{a.userName}</Text>
@@ -156,14 +143,10 @@ export default function DashboardScreen() {
               <View style={[styles.catDot, { backgroundColor: cat.color }]} />
               <View style={styles.catInfo}>
                 <Text style={styles.catName}>{cat.name}</Text>
-                <Text style={styles.catSubtext}>
-                  {cat.transactionCount} transakcji
-                </Text>
+                <Text style={styles.catSubtext}>{cat.transactionCount} transakcji</Text>
               </View>
               <View style={styles.catRight}>
-                <Text style={styles.catAmount}>
-                  {formatCurrency(cat.amount)}
-                </Text>
+                <Text style={styles.catAmount}>{formatCurrency(cat.amount)}</Text>
                 <Text style={styles.catPct}>{cat.percentage.toFixed(0)}%</Text>
               </View>
             </View>
@@ -179,9 +162,7 @@ export default function DashboardScreen() {
             <View key={b.id} style={styles.billRow}>
               <View style={styles.billInfo}>
                 <Text style={styles.billName}>{b.billName}</Text>
-                <Text style={styles.billDate}>
-                  Termin: {formatShortDate(b.dueDate)}
-                </Text>
+                <Text style={styles.billDate}>Termin: {formatShortDate(b.dueDate)}</Text>
               </View>
               <Text style={styles.billAmount}>{formatCurrency(b.amount)}</Text>
             </View>
@@ -198,8 +179,7 @@ export default function DashboardScreen() {
               <View style={styles.budgetHeader}>
                 <Text style={styles.budgetName}>{budget.categoryName}</Text>
                 <Text style={styles.budgetAmount}>
-                  {formatCurrency(budget.spent)} /{" "}
-                  {formatCurrency(budget.amount)}
+                  {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
                 </Text>
               </View>
               <View style={styles.progressBg}>
@@ -231,17 +211,13 @@ export default function DashboardScreen() {
             <View key={g.id} style={styles.goalCard}>
               <Text style={styles.goalName}>{g.name}</Text>
               <Text style={styles.goalAmount}>
-                {formatCurrency(g.currentAmount)} /{" "}
-                {formatCurrency(g.targetAmount)}
+                {formatCurrency(g.currentAmount)} / {formatCurrency(g.targetAmount)}
               </Text>
               <View style={styles.progressBg}>
                 <View
                   style={[
                     styles.progressFill,
-                    {
-                      width: `${Math.min(g.percentage, 100)}%`,
-                      backgroundColor: g.color,
-                    },
+                    { width: `${Math.min(g.percentage, 100)}%`, backgroundColor: g.color },
                   ]}
                 />
               </View>
@@ -255,19 +231,8 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Ostatnie transakcje</Text>
         {data.recentTransactions.slice(0, 5).map((t) => (
           <View key={t.id} style={styles.txRow}>
-            <View
-              style={[
-                styles.txIcon,
-                { backgroundColor: t.categoryColor + "20" },
-              ]}
-            >
-              <Text
-                style={{
-                  color: t.categoryColor,
-                  fontWeight: "700",
-                  fontSize: 12,
-                }}
-              >
+            <View style={[styles.txIcon, { backgroundColor: t.categoryColor + "20" }]}>
+              <Text style={[styles.txIconText, { color: t.categoryColor }]}>
                 {t.categoryName[0]}
               </Text>
             </View>
@@ -292,118 +257,3 @@ export default function DashboardScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: { color: colors.text, fontSize: 16, fontWeight: "600" },
-  errorSubtext: {
-    color: colors.textMuted,
-    fontSize: 13,
-    marginTop: 6,
-    textAlign: "center",
-  },
-
-  hero: {
-    backgroundColor: colors.primary,
-    margin: 16,
-    borderRadius: 20,
-    padding: 24,
-  },
-  heroLabel: { color: "rgba(255,255,255,0.7)", fontSize: 13 },
-  heroAmount: { color: "#fff", fontSize: 36, fontWeight: "800", marginTop: 4 },
-  heroRow: { flexDirection: "row", marginTop: 20 },
-  heroItem: { flex: 1 },
-  heroDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.15)" },
-  heroItemLabel: { color: "rgba(255,255,255,0.6)", fontSize: 11, marginTop: 4 },
-  heroItemValue: { fontSize: 16, fontWeight: "700", marginTop: 2 },
-
-  section: {
-    backgroundColor: colors.surface,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 16,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: 12,
-  },
-
-  accountCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 12,
-    padding: 12,
-    minWidth: 160,
-  },
-  accountName: { fontSize: 14, fontWeight: "700", color: colors.text },
-  accountUser: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
-  accountBalance: { fontSize: 16, fontWeight: "700", marginTop: 8 },
-
-  catRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8 },
-  catDot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
-  catInfo: { flex: 1 },
-  catName: { color: colors.text, fontSize: 14, fontWeight: "500" },
-  catSubtext: { color: colors.textMuted, fontSize: 11, marginTop: 1 },
-  catRight: { alignItems: "flex-end" },
-  catAmount: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  catPct: { color: colors.textMuted, fontSize: 11 },
-
-  billRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  billInfo: { flex: 1 },
-  billName: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  billDate: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  billAmount: { color: colors.warning, fontWeight: "700", fontSize: 14 },
-
-  budgetCard: { marginBottom: 12 },
-  budgetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  budgetName: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  budgetAmount: { color: colors.textSecondary, fontSize: 12 },
-  progressBg: {
-    height: 8,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressFill: { height: "100%", borderRadius: 4 },
-
-  goalCard: { marginBottom: 12 },
-  goalName: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  goalAmount: { color: colors.textSecondary, fontSize: 12, marginBottom: 6 },
-
-  txRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  txIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  txInfo: { flex: 1 },
-  txTitle: { color: colors.text, fontWeight: "500", fontSize: 14 },
-  txMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  txAmount: { fontWeight: "700", fontSize: 14 },
-});
