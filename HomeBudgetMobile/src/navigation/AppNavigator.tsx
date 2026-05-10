@@ -22,7 +22,7 @@ const tabIcons: Record<string, string> = {
   Cele: "savings",
   Rachunki: "receipt",
   Zakupy: "shopping-cart",
-  Splity: "call-split",
+  Konta: "account-balance",
 };
 
 export default function AppNavigator() {
@@ -57,7 +57,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Cele" component={SavingsGoalsScreen} />
         <Tab.Screen name="Rachunki" component={BillsScreen} />
         <Tab.Screen name="Zakupy" component={ShoppingScreen} />
-        <Tab.Screen name="Splity" component={SplitsScreen} />
+        <Tab.Screen name="Konta" component={SplitsScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );
