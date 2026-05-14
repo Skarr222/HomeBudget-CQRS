@@ -1,4 +1,5 @@
 using HomeBudget.Application.Transactions;
+using HomeBudget.Application.Transactions.Maps;
 using HomeBudget.Data.Context;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,9 @@ public class GetTransactionByIdQueryHandler
     public async Task<TransactionDto?> Handle(
         GetTransactionByIdQuery query,
         CancellationToken cancellationToken
-    ) =>
-        await _context
+    )
+    {
+        var transaction = await _context
             .Transactions.Include(transaction => transaction.User)
             .Include(transaction => transaction.Category)
             .Include(transaction => transaction.Account)
@@ -27,27 +29,8 @@ public class GetTransactionByIdQueryHandler
             .Include(transaction => transaction.TransactionTags)
             .ThenInclude(transactionTag => transactionTag.Tag)
             .Where(transaction => transaction.Id == query.Id)
-            .Select(transaction => new TransactionDto(
-                transaction.Id,
-                transaction.Title,
-                transaction.Amount,
-                transaction.Date,
-                transaction.Note,
-                transaction.Type,
-                transaction.PaymentMethod,
-                transaction.IsShared,
-                transaction.User.FirstName + " " + transaction.User.LastName,
-                transaction.UserId,
-                transaction.Category.Name,
-                transaction.Category.Icon,
-                transaction.Category.Color,
-                transaction.CategoryId,
-                transaction.Account.Name,
-                transaction.AccountId,
-                transaction.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
-                transaction.Receipt != null,
-                transaction.Splits.Any(),
-                transaction.CreatedAt
-            ))
             .FirstOrDefaultAsync(cancellationToken);
+
+        return transaction is null ? null : TransactionMappings.ToDto(transaction);
+    }
 }

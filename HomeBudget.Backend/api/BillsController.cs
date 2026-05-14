@@ -42,4 +42,16 @@ public class BillsController : ControllerBase
         var success = await _mediator.Send(new DeleteBillCommand(id));
         return success ? NoContent() : NotFound();
     }
+
+    [HttpPost("{id}/pay")]
+    public async Task<ActionResult<int>> Pay(int id, [FromBody] PayBillCommand command)
+    {
+        if (id != command.BillId)
+        {
+            return BadRequest();
+        }
+
+        var transactionId = await _mediator.Send(command);
+        return Ok(transactionId);
+    }
 }

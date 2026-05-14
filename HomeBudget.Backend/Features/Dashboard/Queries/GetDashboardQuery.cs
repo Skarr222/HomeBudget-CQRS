@@ -1,8 +1,10 @@
-using HomeBudget.Application.Accounts;
-using HomeBudget.Application.BillPayments;
+using HomeBudget.Application.Accounts.Maps;
+using HomeBudget.Application.Bills.Maps;
 using HomeBudget.Application.Budgets;
-using HomeBudget.Application.SavingsGoals;
-using HomeBudget.Application.Transactions;
+using HomeBudget.Application.Budgets.Maps;
+using HomeBudget.Application.Dashboard;
+using HomeBudget.Application.SavingsGoals.Maps;
+using HomeBudget.Application.Transactions.Maps;
 using HomeBudget.Data.Context;
 using HomeBudget.Data.Enums;
 using MediatR;
@@ -42,11 +44,12 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             .ToListAsync(cancellationToken);
 
         var totalIncome = transactions
-            .Where(t => t.Type == TransactionType.Income)
-            .Sum(t => t.Amount);
+            .Where(transaction => transaction.Type == TransactionType.Income)
+            .Sum(transaction => transaction.Amount);
+
         var totalExpenses = transactions
-            .Where(t => t.Type == TransactionType.Expense)
-            .Sum(t => t.Amount);
+            .Where(transaction => transaction.Type == TransactionType.Expense)
+            .Sum(transaction => transaction.Amount);
 
         var topCategories = transactions
             .Where(transaction => transaction.Type == TransactionType.Expense)
@@ -73,28 +76,7 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
         var recentTransactions = transactions
             .OrderByDescending(transaction => transaction.Date)
             .Take(10)
-            .Select(transaction => new TransactionDto(
-                transaction.Id,
-                transaction.Title,
-                transaction.Amount,
-                transaction.Date,
-                transaction.Note,
-                transaction.Type,
-                transaction.PaymentMethod,
-                transaction.IsShared,
-                transaction.User.FirstName + " " + transaction.User.LastName,
-                transaction.UserId,
-                transaction.Category.Name,
-                transaction.Category.Icon,
-                transaction.Category.Color,
-                transaction.CategoryId,
-                transaction.Account.Name,
-                transaction.AccountId,
-                transaction.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
-                transaction.Receipt != null,
-                transaction.Splits.Any(),
-                transaction.CreatedAt
-            ))
+            .Select(TransactionMappings.ToDto)
             .ToList();
 
         var budgets = await _context
@@ -117,77 +99,41 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
                     )
                     .Sum(transaction => transaction.Amount);
 
-                return new BudgetDto(
-                    budget.Id,
-                    budget.Amount,
-                    spent,
-                    budget.Amount - spent,
-                    budget.Amount > 0 ? (double)(spent / budget.Amount * 100) : 0,
-                    budget.Month,
-                    budget.Year,
-                    budget.Category.Name,
-                    budget.Category.Icon,
-                    budget.Category.Color,
-                    budget.CategoryId,
-                    budget.User.FirstName + " " + budget.User.LastName,
-                    budget.UserId
-                );
+                return BudgetMappings.ToDto(budget, spent);
             })
             .ToList();
 
-        var savingsGoals = await _context
-            .SavingsGoals.Where(goal => goal.HouseholdId == query.HouseholdId && !goal.IsCompleted)
-            .Select(goal => new SavingsGoalDto(
-                goal.Id,
-                goal.Name,
-                goal.TargetAmount,
-                goal.CurrentAmount,
-                goal.TargetAmount > 0 ? (double)(goal.CurrentAmount / goal.TargetAmount * 100) : 0,
-                goal.Deadline,
-                goal.Icon,
-                goal.Color,
-                goal.IsCompleted
-            ))
-            .ToListAsync(cancellationToken);
-
-        var upcomingBills = await _context
-            .BillPayments.Include(payment => payment.Bill)
-            .Where(payment =>
-                payment.Bill.HouseholdId == query.HouseholdId && payment.Status != BillStatus.Paid
-            )
-            .OrderBy(payment => payment.DueDate)
-            .Take(5)
-            .Select(payment => new BillPaymentDto(
-                payment.Id,
-                payment.BillId,
-                payment.Bill.Name,
-                payment.Amount,
-                payment.DueDate,
-                payment.PaidDate,
-                payment.PaymentMethod,
-                payment.Status,
-                payment.TransactionId
-            ))
-            .ToListAsync(cancellationToken);
-
-        var accounts = await _context
-            .Accounts.Include(account => account.User)
-            .Where(account =>
-                _context.HouseholdMembers.Any(member =>
-                    member.HouseholdId == query.HouseholdId && member.UserId == account.UserId
+        var savingsGoals = (await _context
+                .SavingsGoals.Where(goal =>
+                    goal.HouseholdId == query.HouseholdId && !goal.IsCompleted
                 )
-            )
-            .Select(account => new AccountDto(
-                account.Id,
-                account.Name,
-                account.Type,
-                account.Balance,
-                account.Color,
-                account.Icon,
-                account.UserId,
-                account.User.FirstName + " " + account.User.LastName
-            ))
-            .ToListAsync(cancellationToken);
+                .ToListAsync(cancellationToken))
+            .Select(SavingsGoalMappings.ToDto)
+            .ToList();
+
+        var upcomingBills = (await _context
+                .BillPayments.Include(payment => payment.Bill)
+                .Where(payment =>
+                    payment.Bill.HouseholdId == query.HouseholdId
+                    && payment.Status != BillStatus.Paid
+                )
+                .OrderBy(payment => payment.DueDate)
+                .Take(5)
+                .ToListAsync(cancellationToken))
+            .Select(payment => BillPaymentMappings.ToDto(payment, payment.Bill.Name))
+            .ToList();
+
+        var accounts = (await _context
+                .Accounts.Include(account => account.User)
+                .Where(account =>
+                    _context.HouseholdMembers.Any(member =>
+                        member.HouseholdId == query.HouseholdId
+                        && member.UserId == account.UserId
+                    )
+                )
+                .ToListAsync(cancellationToken))
+            .Select(AccountMappings.ToDto)
+            .ToList();
 
         return new DashboardDto(
             totalIncome,

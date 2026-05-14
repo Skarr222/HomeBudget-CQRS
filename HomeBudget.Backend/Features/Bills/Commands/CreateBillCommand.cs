@@ -37,7 +37,9 @@ public class CreateBillCommandHandler : IRequestHandler<CreateBillCommand, int>
         };
 
         _context.Bills.Add(bill);
+
         await _context.SaveChangesAsync(cancellationToken);
+
         return bill.Id;
     }
 }

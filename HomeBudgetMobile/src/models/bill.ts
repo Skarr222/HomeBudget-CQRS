@@ -26,6 +26,7 @@ export interface BillDto {
   nextPayment: BillPaymentDto | null;
   totalPaid: number;
   paymentsCount: number;
+  paidThisMonth: boolean;
 }
 
 export interface CreateBillDto {
@@ -48,4 +49,13 @@ export interface UpdateBillDto {
   icon: string;
   color: string;
   isActive: boolean;
+}
+
+export interface PayBillDto {
+  billId: number;
+  amount: number;
+  paymentMethod: string;
+  accountId: number;
+  userId: number;
+  paidDate: string;
 }

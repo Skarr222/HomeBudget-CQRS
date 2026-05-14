@@ -163,13 +163,19 @@ export default function FormModal({
 
           <Text style={fm.label}>Szacowana kwota (zł) *</Text>
           <TextInput
-            style={fm.input}
+            style={[fm.input, editing?.paidThisMonth && { opacity: 0.4 }]}
             value={amount}
             onChangeText={setAmount}
             keyboardType="decimal-pad"
             placeholder="0.00"
             placeholderTextColor={colors.textMuted}
+            editable={!editing?.paidThisMonth}
           />
+          {editing?.paidThisMonth && (
+            <Text style={{ fontSize: 11, color: colors.textMuted, marginBottom: 4 }}>
+              Kwota zablokowana — rachunek opłacony w tym miesiącu
+            </Text>
+          )}
 
           {!editing && (
             <>

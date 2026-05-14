@@ -46,6 +46,8 @@ export const s = StyleSheet.create({
   amount: { fontSize: 16, fontWeight: "700", color: colors.text },
   category: { fontSize: 12, color: colors.textMuted },
   inactive: { fontSize: 11, color: colors.danger, marginTop: 2, fontWeight: "600" },
+  paidBadge: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
+  paidBadgeText: { fontSize: 11, color: colors.success, fontWeight: "600" },
   empty: { alignItems: "center", paddingTop: 60, gap: 8 },
   emptyText: { fontSize: 16, color: colors.textSecondary, fontWeight: "600" },
   emptySubText: { fontSize: 13, color: colors.textMuted },

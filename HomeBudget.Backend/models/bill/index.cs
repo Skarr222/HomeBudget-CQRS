@@ -15,7 +15,8 @@ public record BillDto(
     int CategoryId,
     BillPaymentDto? NextPayment,
     decimal TotalPaid,
-    int PaymentsCount
+    int PaymentsCount,
+    bool PaidThisMonth
 );
 
 public record CreateBillDto(

@@ -1,7 +1,6 @@
-using HomeBudget.Application.BillPayments;
 using HomeBudget.Application.Bills;
+using HomeBudget.Application.Bills.Maps;
 using HomeBudget.Data.Context;
-using HomeBudget.Data.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,45 +26,8 @@ public class GetAllBillsQueryHandler : IRequestHandler<GetAllBillsQuery, List<Bi
             .OrderBy(bill => bill.DueDay)
             .ToListAsync(cancellationToken);
 
-        return bills
-            .Select(bill =>
-            {
-                var nextPayment = bill
-                    .Payments.Where(payment => payment.Status != BillStatus.Paid)
-                    .OrderBy(payment => payment.DueDate)
-                    .FirstOrDefault();
+        var now = DateTime.UtcNow;
 
-                var nextPaymentDto = nextPayment is null
-                    ? null
-                    : new BillPaymentDto(
-                        nextPayment.Id,
-                        nextPayment.BillId,
-                        bill.Name,
-                        nextPayment.Amount,
-                        nextPayment.DueDate,
-                        nextPayment.PaidDate,
-                        nextPayment.PaymentMethod,
-                        nextPayment.Status,
-                        nextPayment.TransactionId
-                    );
-
-                return new BillDto(
-                    bill.Id,
-                    bill.Name,
-                    bill.Provider,
-                    bill.DueDay,
-                    bill.EstimatedAmount,
-                    bill.Icon,
-                    bill.Color,
-                    bill.IsActive,
-                    bill.Category.Name,
-                    bill.CategoryId,
-                    nextPaymentDto,
-                    bill.Payments.Where(payment => payment.Status == BillStatus.Paid)
-                        .Sum(payment => payment.Amount),
-                    bill.Payments.Count(payment => payment.Status == BillStatus.Paid)
-                );
-            })
-            .ToList();
+        return bills.Select(bill => BillMappings.ToDto(bill, now)).ToList();
     }
 }

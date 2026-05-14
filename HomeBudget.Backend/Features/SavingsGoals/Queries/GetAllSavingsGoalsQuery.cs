@@ -1,4 +1,5 @@
 using HomeBudget.Application.SavingsGoals;
+using HomeBudget.Application.SavingsGoals.Maps;
 using HomeBudget.Data.Context;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -17,20 +18,13 @@ public class GetAllSavingsGoalsQueryHandler
     public async Task<List<SavingsGoalDto>> Handle(
         GetAllSavingsGoalsQuery query,
         CancellationToken cancellationToken
-    ) =>
-        await _context
+    )
+    {
+        var goals = await _context
             .SavingsGoals.Where(goal => goal.HouseholdId == query.HouseholdId)
             .OrderByDescending(goal => goal.CreatedAt)
-            .Select(goal => new SavingsGoalDto(
-                goal.Id,
-                goal.Name,
-                goal.TargetAmount,
-                goal.CurrentAmount,
-                goal.TargetAmount > 0 ? (double)(goal.CurrentAmount / goal.TargetAmount * 100) : 0,
-                goal.Deadline,
-                goal.Icon,
-                goal.Color,
-                goal.IsCompleted
-            ))
             .ToListAsync(cancellationToken);
+
+        return goals.Select(SavingsGoalMappings.ToDto).ToList();
+    }
 }

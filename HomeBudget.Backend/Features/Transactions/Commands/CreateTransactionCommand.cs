@@ -53,6 +53,19 @@ public class CreateTransactionCommandHandler : IRequestHandler<CreateTransaction
                 .ToList();
 
         _context.Transactions.Add(transaction);
+
+        var account = await _context.Accounts.FindAsync(
+            new object[] { command.AccountId },
+            cancellationToken
+        );
+        if (account is not null)
+        {
+            if (command.Type == TransactionType.Expense)
+                account.Balance -= command.Amount;
+            else
+                account.Balance += command.Amount;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return transaction.Id;
     }

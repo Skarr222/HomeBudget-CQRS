@@ -23,7 +23,9 @@ public class DeleteBillCommandHandler : IRequestHandler<DeleteBillCommand, bool>
             return false;
 
         _context.Bills.Remove(bill);
+
         await _context.SaveChangesAsync(cancellationToken);
+
         return true;
     }
 }

@@ -10,30 +10,36 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { billsApi, categoriesApi } from "../../api/apiService";
-import { BillDto, CategoryDto } from "../../models/types";
+import { accountsApi, billsApi, categoriesApi } from "../../api/apiService";
+import { AccountDto, BillDto, CategoryDto } from "../../models/types";
 import { colors, formatCurrency } from "../../utils/helpers";
 import { s } from "../../styles/Bills";
 import FormModal from "./components/FormModal";
+import PayModal from "./components/PayModal";
 
 const HOUSEHOLD_ID = 1;
 
 export default function BillsScreen() {
   const [bills, setBills] = useState<BillDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [accounts, setAccounts] = useState<AccountDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<BillDto | null>(null);
+  const [payModalVisible, setPayModalVisible] = useState(false);
+  const [paying, setPaying] = useState<BillDto | null>(null);
 
   const fetchData = async () => {
     try {
-      const [bRes, cRes] = await Promise.all([
+      const [bRes, cRes, aRes] = await Promise.all([
         billsApi.getAll(HOUSEHOLD_ID),
         categoriesApi.getAll(),
+        accountsApi.getAll({ householdId: HOUSEHOLD_ID }),
       ]);
       setBills(bRes.data);
       setCategories(cRes.data);
+      setAccounts(aRes.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -131,6 +137,21 @@ export default function BillsScreen() {
                   ) : null}
                 </View>
                 <View style={s.cardActions}>
+                  {item.isActive && !item.paidThisMonth && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setPaying(item);
+                        setPayModalVisible(true);
+                      }}
+                      style={s.actionBtn}
+                    >
+                      <MaterialIcons
+                        name="check-circle-outline"
+                        size={17}
+                        color={colors.success}
+                      />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     onPress={() => {
                       setEditing(item);
@@ -172,6 +193,12 @@ export default function BillsScreen() {
                 </Text>
               </View>
               <Text style={s.category}>{item.categoryName}</Text>
+              {item.paidThisMonth && (
+                <View style={s.paidBadge}>
+                  <MaterialIcons name="check-circle" size={12} color={colors.success} />
+                  <Text style={s.paidBadgeText}>Opłacony w tym miesiącu</Text>
+                </View>
+              )}
               {!item.isActive && <Text style={s.inactive}>Nieaktywny</Text>}
             </View>
           </View>
@@ -197,6 +224,17 @@ export default function BillsScreen() {
         }}
         editing={editing}
         categories={categories}
+      />
+
+      <PayModal
+        visible={payModalVisible}
+        onClose={() => setPayModalVisible(false)}
+        onPaid={() => {
+          setPayModalVisible(false);
+          fetchData();
+        }}
+        bill={paying}
+        accounts={accounts}
       />
     </View>
   );

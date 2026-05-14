@@ -1,4 +1,5 @@
 using HomeBudget.Application.Accounts;
+using HomeBudget.Application.Accounts.Maps;
 using HomeBudget.Data.Context;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,27 +22,23 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
         var accounts = _context.Accounts.Include(account => account.User).AsQueryable();
 
         if (query.UserId.HasValue)
+        {
             accounts = accounts.Where(account => account.UserId == query.UserId);
+        }
 
         if (query.HouseholdId.HasValue)
+        {
             accounts = accounts.Where(account =>
                 _context.HouseholdMembers.Any(member =>
                     member.HouseholdId == query.HouseholdId && member.UserId == account.UserId
                 )
             );
+        }
 
-        return await accounts
+        var result = await accounts
             .OrderBy(account => account.Name)
-            .Select(account => new AccountDto(
-                account.Id,
-                account.Name,
-                account.Type,
-                account.Balance,
-                account.Color,
-                account.Icon,
-                account.UserId,
-                account.User.FirstName + " " + account.User.LastName
-            ))
             .ToListAsync(cancellationToken);
+
+        return result.Select(AccountMappings.ToDto).ToList();
     }
 }

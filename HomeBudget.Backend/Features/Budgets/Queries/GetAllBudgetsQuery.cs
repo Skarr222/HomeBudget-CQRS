@@ -1,4 +1,5 @@
 using HomeBudget.Application.Budgets;
+using HomeBudget.Application.Budgets.Maps;
 using HomeBudget.Data.Context;
 using HomeBudget.Data.Enums;
 using MediatR;
@@ -59,21 +60,7 @@ public class GetAllBudgetsQueryHandler : IRequestHandler<GetAllBudgetsQuery, Lis
             .Select(budget =>
             {
                 var spent = spentPerCategory.GetValueOrDefault(budget.CategoryId, 0);
-                return new BudgetDto(
-                    budget.Id,
-                    budget.Amount,
-                    spent,
-                    budget.Amount - spent,
-                    budget.Amount > 0 ? (double)(spent / budget.Amount * 100) : 0,
-                    budget.Month,
-                    budget.Year,
-                    budget.Category.Name,
-                    budget.Category.Icon,
-                    budget.Category.Color,
-                    budget.CategoryId,
-                    budget.User.FirstName + " " + budget.User.LastName,
-                    budget.UserId
-                );
+                return BudgetMappings.ToDto(budget, spent);
             })
             .ToList();
     }

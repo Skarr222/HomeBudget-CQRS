@@ -1,4 +1,5 @@
 using HomeBudget.Application.Transactions;
+using HomeBudget.Application.Transactions.Maps;
 using HomeBudget.Data.Context;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -37,48 +38,38 @@ public class GetAllTransactionsQueryHandler
             .AsQueryable();
 
         if (query.HouseholdId.HasValue)
+        {
             transactions = transactions.Where(transaction =>
                 transaction.HouseholdId == query.HouseholdId
             );
+        }
         if (query.UserId.HasValue)
+        {
             transactions = transactions.Where(transaction => transaction.UserId == query.UserId);
+        }
         if (query.CategoryId.HasValue)
+        {
             transactions = transactions.Where(transaction =>
                 transaction.CategoryId == query.CategoryId
             );
+        }
         if (query.AccountId.HasValue)
+        {
             transactions = transactions.Where(transaction =>
                 transaction.AccountId == query.AccountId
             );
+        }
         if (query.Month.HasValue && query.Year.HasValue)
+        {
             transactions = transactions.Where(transaction =>
                 transaction.Date.Month == query.Month && transaction.Date.Year == query.Year
             );
+        }
 
-        return await transactions
+        var result = await transactions
             .OrderByDescending(transaction => transaction.Date)
-            .Select(transaction => new TransactionDto(
-                transaction.Id,
-                transaction.Title,
-                transaction.Amount,
-                transaction.Date,
-                transaction.Note,
-                transaction.Type,
-                transaction.PaymentMethod,
-                transaction.IsShared,
-                transaction.User.FirstName + " " + transaction.User.LastName,
-                transaction.UserId,
-                transaction.Category.Name,
-                transaction.Category.Icon,
-                transaction.Category.Color,
-                transaction.CategoryId,
-                transaction.Account.Name,
-                transaction.AccountId,
-                transaction.TransactionTags.Select(tt => tt.Tag.Name).ToList(),
-                transaction.Receipt != null,
-                transaction.Splits.Any(),
-                transaction.CreatedAt
-            ))
             .ToListAsync(cancellationToken);
+
+        return result.Select(TransactionMappings.ToDto).ToList();
     }
 }

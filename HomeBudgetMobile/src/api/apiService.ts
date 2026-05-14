@@ -6,6 +6,7 @@ import {
   CategoryDto,
   CreateAccountDto,
   CreateBillDto,
+  PayBillDto,
   CreateBudgetDto,
   CreateSavingsGoalDto,
   CreateTransactionDto,
@@ -40,8 +41,7 @@ export const transactionsApi = {
 
   getById: (id: number) => api.get<TransactionDto>(`/transactions/${id}`),
 
-  create: (dto: CreateTransactionDto) =>
-    api.post<number>("/transactions", dto),
+  create: (dto: CreateTransactionDto) => api.post<number>("/transactions", dto),
 
   update: (id: number, dto: UpdateTransactionDto) =>
     api.put(`/transactions/${id}`, dto),
@@ -85,8 +85,7 @@ export const savingsGoalsApi = {
   getAll: (householdId: number) =>
     api.get<SavingsGoalDto[]>("/savingsGoals", { params: { householdId } }),
 
-  create: (dto: CreateSavingsGoalDto) =>
-    api.post<number>("/savingsGoals", dto),
+  create: (dto: CreateSavingsGoalDto) => api.post<number>("/savingsGoals", dto),
 
   update: (id: number, dto: UpdateSavingsGoalDto) =>
     api.put(`/savingsGoals/${id}`, dto),
@@ -104,6 +103,9 @@ export const billsApi = {
   update: (id: number, dto: UpdateBillDto) => api.put(`/bills/${id}`, dto),
 
   delete: (id: number) => api.delete(`/bills/${id}`),
+
+  pay: (id: number, dto: PayBillDto) =>
+    api.post<number>(`/bills/${id}/pay`, dto),
 };
 
 // ── Shopping Lists ────────────────────────────────────────────────────────────
@@ -123,13 +125,27 @@ export const shoppingListsApi = {
 // ── Shopping Items ────────────────────────────────────────────────────────────
 export const shoppingItemsApi = {
   getAll: (shoppingListId: number) =>
-    api.get<ShoppingItemDto[]>("/shoppingItems", { params: { shoppingListId } }),
+    api.get<ShoppingItemDto[]>("/shoppingItems", {
+      params: { shoppingListId },
+    }),
 
-  create: (dto: { name: string; quantity: number; estimatedPrice?: number | null; shoppingListId: number }) =>
-    api.post<number>("/shoppingItems", dto),
+  create: (dto: {
+    name: string;
+    quantity: number;
+    estimatedPrice?: number | null;
+    shoppingListId: number;
+  }) => api.post<number>("/shoppingItems", dto),
 
-  update: (id: number, dto: { id: number; name: string; quantity: number; estimatedPrice?: number | null; isChecked: boolean }) =>
-    api.put(`/shoppingItems/${id}`, dto),
+  update: (
+    id: number,
+    dto: {
+      id: number;
+      name: string;
+      quantity: number;
+      estimatedPrice?: number | null;
+      isChecked: boolean;
+    }
+  ) => api.put(`/shoppingItems/${id}`, dto),
 
   delete: (id: number) => api.delete(`/shoppingItems/${id}`),
 };

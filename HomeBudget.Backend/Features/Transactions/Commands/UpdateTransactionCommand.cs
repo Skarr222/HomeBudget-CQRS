@@ -38,6 +38,20 @@ public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransaction
         if (transaction is null)
             return false;
 
+        // Reverse old balance effect
+        var oldAccountId = transaction.AccountId;
+        var oldAccount = await _context.Accounts.FindAsync(
+            new object[] { oldAccountId },
+            cancellationToken
+        );
+        if (oldAccount is not null)
+        {
+            if (transaction.Type == TransactionType.Expense)
+                oldAccount.Balance += transaction.Amount;
+            else
+                oldAccount.Balance -= transaction.Amount;
+        }
+
         transaction.Title = command.Title;
         transaction.Amount = command.Amount;
         transaction.Date = command.Date;
@@ -47,6 +61,18 @@ public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransaction
         transaction.IsShared = command.IsShared;
         transaction.CategoryId = command.CategoryId;
         transaction.AccountId = command.AccountId;
+
+        // Apply new balance effect
+        var newAccount = oldAccountId == command.AccountId
+            ? oldAccount
+            : await _context.Accounts.FindAsync(new object[] { command.AccountId }, cancellationToken);
+        if (newAccount is not null)
+        {
+            if (command.Type == TransactionType.Expense)
+                newAccount.Balance -= command.Amount;
+            else
+                newAccount.Balance += command.Amount;
+        }
 
         transaction.TransactionTags.Clear();
         if (command.TagIds?.Count > 0)

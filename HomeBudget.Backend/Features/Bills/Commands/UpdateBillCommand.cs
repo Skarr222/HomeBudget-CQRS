@@ -40,6 +40,7 @@ public class UpdateBillCommandHandler : IRequestHandler<UpdateBillCommand, bool>
         bill.IsActive = command.IsActive;
 
         await _context.SaveChangesAsync(cancellationToken);
+
         return true;
     }
 }
