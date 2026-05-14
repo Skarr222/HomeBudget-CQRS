@@ -63,9 +63,13 @@ public class UpdateTransactionCommandHandler : IRequestHandler<UpdateTransaction
         transaction.AccountId = command.AccountId;
 
         // Apply new balance effect
-        var newAccount = oldAccountId == command.AccountId
-            ? oldAccount
-            : await _context.Accounts.FindAsync(new object[] { command.AccountId }, cancellationToken);
+        var newAccount =
+            oldAccountId == command.AccountId
+                ? oldAccount
+                : await _context.Accounts.FindAsync(
+                    new object[] { command.AccountId },
+                    cancellationToken
+                );
         if (newAccount is not null)
         {
             if (command.Type == TransactionType.Expense)

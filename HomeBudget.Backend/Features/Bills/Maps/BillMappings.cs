@@ -8,8 +8,8 @@ public static class BillMappings
 {
     public static BillDto ToDto(Bill bill, DateTime now)
     {
-        var nextPayment = bill.Payments
-            .Where(p => p.Status != BillStatus.Paid)
+        var nextPayment = bill
+            .Payments.Where(p => p.Status != BillStatus.Paid)
             .OrderBy(p => p.DueDate)
             .FirstOrDefault();
 

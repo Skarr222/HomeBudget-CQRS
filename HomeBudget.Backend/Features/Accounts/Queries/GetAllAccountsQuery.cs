@@ -35,9 +35,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
             );
         }
 
-        var result = await accounts
-            .OrderBy(account => account.Name)
-            .ToListAsync(cancellationToken);
+        var result = await accounts.OrderBy(account => account.Name).ToListAsync(cancellationToken);
 
         return result.Select(AccountMappings.ToDto).ToList();
     }

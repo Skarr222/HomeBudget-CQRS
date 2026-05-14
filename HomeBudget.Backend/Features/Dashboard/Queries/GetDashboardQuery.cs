@@ -103,15 +103,18 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
             })
             .ToList();
 
-        var savingsGoals = (await _context
+        var savingsGoals = (
+            await _context
                 .SavingsGoals.Where(goal =>
                     goal.HouseholdId == query.HouseholdId && !goal.IsCompleted
                 )
-                .ToListAsync(cancellationToken))
+                .ToListAsync(cancellationToken)
+        )
             .Select(SavingsGoalMappings.ToDto)
             .ToList();
 
-        var upcomingBills = (await _context
+        var upcomingBills = (
+            await _context
                 .BillPayments.Include(payment => payment.Bill)
                 .Where(payment =>
                     payment.Bill.HouseholdId == query.HouseholdId
@@ -119,19 +122,21 @@ public class GetDashboardQueryHandler : IRequestHandler<GetDashboardQuery, Dashb
                 )
                 .OrderBy(payment => payment.DueDate)
                 .Take(5)
-                .ToListAsync(cancellationToken))
+                .ToListAsync(cancellationToken)
+        )
             .Select(payment => BillPaymentMappings.ToDto(payment, payment.Bill.Name))
             .ToList();
 
-        var accounts = (await _context
+        var accounts = (
+            await _context
                 .Accounts.Include(account => account.User)
                 .Where(account =>
                     _context.HouseholdMembers.Any(member =>
-                        member.HouseholdId == query.HouseholdId
-                        && member.UserId == account.UserId
+                        member.HouseholdId == query.HouseholdId && member.UserId == account.UserId
                     )
                 )
-                .ToListAsync(cancellationToken))
+                .ToListAsync(cancellationToken)
+        )
             .Select(AccountMappings.ToDto)
             .ToList();
 
